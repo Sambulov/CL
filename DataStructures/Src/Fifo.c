@@ -19,10 +19,10 @@ static uint8_t _bSwitchBuffer(_Fifo_t *pxDesc) {
 	if (pxDesc->isDouble && !pxDesc->isInTransaction && !pxDesc->pxIface->pfIsInIsr()) {
 		if (pxDesc->pxIface->pfBufferAvailable(pxDesc->buffer[pxDesc->rdBufIndex]) == 0) {
 			pxDesc->rdBufIndex = !pxDesc->rdBufIndex;
-			return true;
+			return cl_true;
 		}
 	}
-	return false;
+	return cl_false;
 }
 
 uint8_t bFifoIsValid(Fifo_t *pxFifo) {
@@ -48,7 +48,7 @@ static int32_t _lFifoAvailableTo(_Fifo_t *pxDesc, uint8_t bReadData) {
 
 uint8_t bFifoInit(Fifo_t *pxFifo, uint8_t *pucBuffer, uint16_t uSize, uint8_t isDoubleBufferization) {
 	if ((pxFifo == libNULL) || (pucBuffer == libNULL) || (pxFifo->pxIface == libNULL)) 
-	  return false;
+	  return cl_false;
 	_Fifo_t *pxDescriptor = (_Fifo_t *)pxFifo;
 	pxDescriptor->validation = FIFO_VALIDATION_MARKER;
 	pxDescriptor->isDouble = 0;
@@ -59,14 +59,14 @@ uint8_t bFifoInit(Fifo_t *pxFifo, uint8_t *pucBuffer, uint16_t uSize, uint8_t is
 		uSize >>= 1;
 		pxDescriptor->buffer[1] = pxDescriptor->pxIface->pfBufferInit(pucBuffer + uSize, uSize);
 		if (pxDescriptor->buffer[1] == libNULL) {
-			return false;
+			return cl_false;
 		}
 	}
 	pxDescriptor->buffer[0] = pxDescriptor->pxIface->pfBufferInit(pucBuffer, uSize);
 	if (pxDescriptor->buffer[0] == libNULL) {
-		return false;
+		return cl_false;
 	}
-	return true;
+	return cl_true;
 }
 
 void vFifoFlush(Fifo_t *pxDescriptor) {
@@ -200,7 +200,7 @@ uint8_t bFifoTransactionBegin(Fifo_t *pxDescriptor) {
 		}
 		return desc->isInTransaction;
 	}
-	return false;
+	return cl_false;
 }
 
 uint8_t bFifoTransactionCommit(Fifo_t *pxDescriptor) {
@@ -218,7 +218,7 @@ uint8_t bFifoTransactionCommit(Fifo_t *pxDescriptor) {
 		}
 		return !desc->isInTransaction;
 	}
-	return false;
+	return cl_false;
 }
 
 uint8_t bFifoTransactionRollback(Fifo_t *pxDescriptor) {
@@ -233,7 +233,7 @@ uint8_t bFifoTransactionRollback(Fifo_t *pxDescriptor) {
 		}
 		return !desc->isInTransaction;
 	}
-	return false;
+	return cl_false;
 }
 
 /*!

@@ -133,7 +133,7 @@ int32_t lStrnSrcLast(const uint8_t* pcStr1, int32_t lLength, const uint8_t* pcSt
 		int32_t str2Len = lStrLen(pcStr2);
 		if (str2Len <= lLength && str2Len <= str1Len) {
 			const uint8_t *str1Cursor = libNULL, *str2Cursor = libNULL;
-			const uint8_t *str2End = pcStr2 + str2Len, *str1End = pcStr1 + MIN(lLength, str1Len);
+			const uint8_t *str2End = pcStr2 + str2Len, *str1End = pcStr1 + CL_MIN(lLength, str1Len);
 			while (str1End != pcStr1) {
 				str1Cursor = --str1End;
 				str2Cursor = str2End - 1;
@@ -171,7 +171,7 @@ int32_t lLongToStr(uint8_t* pcBufer, int32_t lValue) {
 			count = MAX_DIGITS_IN_LONG_INT;
 			uint8_t longStr[count + 1];
 			int32_t k = lValue;
-			lValue = ABS(lValue);
+			lValue = CL_ABS(lValue);
 			longStr[count] = '\0';
 			while (lValue != 0) {
 				count--;
