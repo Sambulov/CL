@@ -129,33 +129,33 @@ static uint16_t _usCrc16ModbusAscii(const uint8_t *pucData, int32_t ulLen, const
 }
 
 static inline int32_t _lWrite(_prModbus_t *pxMb, uint8_t *pucData, int32_t lSize) {
-    return pxMb->pxIface->lWrite(pxMb->pxIface->pxTxPhy, pucData, lSize);
+    return pxMb->pxIface->pfWrite(pxMb->pxIface->pxTxPhy, pucData, lSize);
 }
 
 static int32_t _lWriteAscii(_prModbus_t *pxMb, uint8_t *pucData, int32_t lSize) {
-  int32_t aw = pxMb->pxIface->lAvailableToWrite(pxMb->pxIface->pxTxPhy) >> 1;
+  int32_t aw = pxMb->pxIface->pfAvailableToWrite(pxMb->pxIface->pxTxPhy) >> 1;
   int32_t count = 0;
   while (lSize-- && aw--) {
     uint16_t asscii_encoded = usConvertByteToAsciiHex(*pucData++, cl_true);
     asscii_encoded = swap_bytes(asscii_encoded);
-    if(pxMb->pxIface->lWrite(pxMb->pxIface->pxTxPhy, (uint8_t *)&asscii_encoded, 2) != 2) break;
+    if(pxMb->pxIface->pfWrite(pxMb->pxIface->pxTxPhy, (uint8_t *)&asscii_encoded, 2) != 2) break;
     count++;
   }
   return count;
 }
 
 static uint8_t _bWriteBlock(_prModbus_t *pxMb, uint8_t *pucData, int32_t lSize) {
-  int32_t wa = pxMb->pxIface->lAvailableToWrite(pxMb->pxIface->pxTxPhy);
+  int32_t wa = pxMb->pxIface->pfAvailableToWrite(pxMb->pxIface->pxTxPhy);
   if(wa < lSize) return cl_false;
-  return (lSize >= 0) && (pxMb->pxIface->lWrite(pxMb->pxIface->pxTxPhy, pucData, lSize) == lSize);
+  return (lSize >= 0) && (pxMb->pxIface->pfWrite(pxMb->pxIface->pxTxPhy, pucData, lSize) == lSize);
 }
 
 static uint8_t _bWriteBlockAscii(_prModbus_t *pxMb, uint8_t *pucData, int32_t lSize) {
-  if(pxMb->pxIface->lAvailableToWrite(pxMb->pxIface->pxTxPhy) < (lSize * 2)) return cl_false;
+  if(pxMb->pxIface->pfAvailableToWrite(pxMb->pxIface->pxTxPhy) < (lSize * 2)) return cl_false;
   while (lSize--) {
     uint16_t asscii_encoded = convert_byte_to_ascii_hex(*pucData++, cl_true);
     asscii_encoded = swap_bytes(asscii_encoded);
-    int32_t res = pxMb->pxIface->lWrite(pxMb->pxIface->pxTxPhy, (uint8_t *)&asscii_encoded, 2);
+    int32_t res = pxMb->pxIface->pfWrite(pxMb->pxIface->pxTxPhy, (uint8_t *)&asscii_encoded, 2);
     if (res <= 0) return cl_false;
   }
   return cl_true;
@@ -220,7 +220,7 @@ static int8_t _TxFrame(_prModbus_t *pxMb, uint8_t bRequest) {
         /* fall through */
     case 9: /* Tx frame terminator */
         if (pxMb->bAsciiMode) {
-            uint32_t aw = pxMb->pxIface->lAvailableToWrite(pxMb->pxIface->pxTxPhy);
+            uint32_t aw = pxMb->pxIface->pfAvailableToWrite(pxMb->pxIface->pxTxPhy);
             if((aw < 2) || (_lWrite(pxMb, (uint8_t *)"\r\n", 2) <= 0)) return 9;
         }
     default:
@@ -230,15 +230,15 @@ static int8_t _TxFrame(_prModbus_t *pxMb, uint8_t bRequest) {
 }
 
 static inline int32_t _lRead(_prModbus_t *pxMb, uint8_t *pucData, int32_t lSize) {
-    return pxMb->pxIface->lRead(pxMb->pxIface->pxRxPhy, pucData, lSize);
+    return pxMb->pxIface->pfRead(pxMb->pxIface->pxRxPhy, pucData, lSize);
 }
 
 static int32_t _lReadAscii(_prModbus_t *pxMb, uint8_t *pucData, int32_t lSize) {
   int32_t count = 0;
   uint16_t asscii;
-  uint32_t ar = pxMb->pxIface->lAvailableToRead(pxMb->pxIface->pxRxPhy);
+  uint32_t ar = pxMb->pxIface->pfAvailableToRead(pxMb->pxIface->pxRxPhy);
   while (lSize-- && ar >= 2) {
-    if((pxMb->pxIface->lRead(pxMb->pxIface->pxRxPhy, (uint8_t *)&asscii, 2) != 2) ||
+    if((pxMb->pxIface->pfRead(pxMb->pxIface->pxRxPhy, (uint8_t *)&asscii, 2) != 2) ||
        !bConvertAsciiHexToByte(swap_bytes(asscii), pucData++)) return -1;
     ar -= 2;
     count++;
@@ -247,15 +247,15 @@ static int32_t _lReadAscii(_prModbus_t *pxMb, uint8_t *pucData, int32_t lSize) {
 }
 
 static uint8_t _bReadBlock(_prModbus_t *pxMb, uint8_t *pucData, int32_t lSize) {
-  if (pxMb->pxIface->lAvailableToRead(pxMb->pxIface->pxRxPhy) < lSize) return cl_false;
-  return pxMb->pxIface->lRead(pxMb->pxIface->pxRxPhy, pucData, lSize) == lSize;
+  if (pxMb->pxIface->pfAvailableToRead(pxMb->pxIface->pxRxPhy) < lSize) return cl_false;
+  return pxMb->pxIface->pfRead(pxMb->pxIface->pxRxPhy, pucData, lSize) == lSize;
 }
 
 static uint8_t _ReadBlockAscii(_prModbus_t *pxMb, uint8_t *pucData, int32_t lSize) {
-  if (pxMb->pxIface->lAvailableToRead(pxMb->pxIface->pxRxPhy) < (lSize * 2)) return cl_false;
+  if (pxMb->pxIface->pfAvailableToRead(pxMb->pxIface->pxRxPhy) < (lSize * 2)) return cl_false;
   uint16_t asscii;
   while (lSize--) {
-    if((pxMb->pxIface->lRead(pxMb->pxIface->pxRxPhy, (uint8_t *)&asscii, 2) != 2) ||
+    if((pxMb->pxIface->pfRead(pxMb->pxIface->pxRxPhy, (uint8_t *)&asscii, 2) != 2) ||
        !convert_ascii_hex_to_byte(swap_bytes(asscii), pucData++)) return cl_false;
   }
   return cl_true;
@@ -277,7 +277,7 @@ static int8_t _RxFrame(_prModbus_t *pxMb, uint8_t bRequest) {
             if (pxMb->bAsciiMode) {
                 if ((_lRead(pxMb, &frame->ucAddr, 1) <= 0) || (frame->ucAddr != ':')) return 1;
             }
-            else if (pxMb->pxIface->lAvailableToRead(pxMb->pxIface->pxRxPhy) <= 0) return 1;
+            else if (pxMb->pxIface->pfAvailableToRead(pxMb->pxIface->pxRxPhy) <= 0) return 1;
             pxMb->ucTransferCounter = 0;
             /* fall through */
         case 2 /* Rx addr & func */: {
@@ -334,7 +334,7 @@ static int8_t _RxFrame(_prModbus_t *pxMb, uint8_t bRequest) {
         } /* fall through */
         case 10:
             if (pxMb->bAsciiMode) {
-                if (pxMb->pxIface->lAvailableToRead(pxMb->pxIface->pxRxPhy) < 2) return 10;
+                if (pxMb->pxIface->pfAvailableToRead(pxMb->pxIface->pxRxPhy) < 2) return 10;
                 uint8_t buf[2];
                 _lRead(pxMb, buf, 2);
                 return (((buf[0] == '\r') && (buf[1] == '\n'))? 0: -1);
@@ -357,7 +357,7 @@ static int8_t _RxFrame(_prModbus_t *pxMb, uint8_t bRequest) {
 
 static void _vModbusServerWork(_prModbus_t *pxMb) {
     if (pxMb->ucState & MODBUS_STATE_RECEIVING) {
-        uint16_t now = pxMb->pxIface->ulTimerMs(pxMb->pxIface->pxTimerPhy);
+        uint16_t now = pxMb->pxIface->pfTimer(pxMb->pxIface->pxTimerPhy);
         if(pxMb->ucXferState <= 1) {
             pxMb->usTimer = now;
             pxMb->xRequest.xFrame.pucData = pxMb->pucPayLoadBuffer;
@@ -379,13 +379,13 @@ static void _vModbusServerWork(_prModbus_t *pxMb) {
                 pxMb->xFrame.ucLengthCode = result;
                 pxMb->eTxType = eModbusPacketCode;
             }
-            pxMb->usTimer = pxMb->pxIface->ulTimerMs(pxMb->pxIface->pxTimerPhy);
+            pxMb->usTimer = pxMb->pxIface->pfTimer(pxMb->pxIface->pxTimerPhy);
             pxMb->ucState = MODBUS_STATE_TRANSMITTING;
         }
         else pxMb->ucState = MODBUS_STATE_RECEIVING;
     }
     if (pxMb->ucState & MODBUS_STATE_TRANSMITTING) {
-        uint16_t now = pxMb->pxIface->ulTimerMs(pxMb->pxIface->pxTimerPhy);
+        uint16_t now = pxMb->pxIface->pfTimer(pxMb->pxIface->pxTimerPhy);
         pxMb->ucXferState = _TxFrame(pxMb, cl_false);
         if ((pxMb->ucXferState <= 0) || ((uint16_t)(now - pxMb->usTimer) >= pxMb->tx_timeout)) {
             pxMb->ucXferState = 0;
@@ -398,7 +398,7 @@ static void _vModbusServerWork(_prModbus_t *pxMb) {
 static void _vModbusClientWork(_prModbus_t *pxMb) {
 	if (pxMb->ucState == MODBUS_STATE_IDLE) return;
     if (pxMb->ucState == MODBUS_STATE_TRANSMITTING) {
-        uint16_t now = pxMb->pxIface->ulTimerMs(pxMb->pxIface->pxTimerPhy);
+        uint16_t now = pxMb->pxIface->pfTimer(pxMb->pxIface->pxTimerPhy);
         if(pxMb->ucXferState <= 0) pxMb->usTimer = now;
         pxMb->ucXferState = _TxFrame(pxMb, cl_true);
         if(pxMb->ucXferState == 0) {
@@ -411,7 +411,7 @@ static void _vModbusClientWork(_prModbus_t *pxMb) {
     }
     if (pxMb->ucState == MODBUS_STATE_RECEIVING) {
         if(pxMb->eRxType != eModbusPacketNone) {
-            uint16_t now = pxMb->pxIface->ulTimerMs(pxMb->pxIface->pxTimerPhy);
+            uint16_t now = pxMb->pxIface->pfTimer(pxMb->pxIface->pxTimerPhy);
             pxMb->ucXferState = _RxFrame(pxMb, cl_false);
             if (pxMb->ucXferState == MODBUS_RX_STATE_DEFINE_PACKET_TYPE) {
                 if (pxMb->xFrame.ucFunc & MODBUS_ERROR_FLAG) pxMb->eRxType = eModbusPacketCode;
@@ -512,7 +512,12 @@ uint8_t bModbusRequest(Modbus_t *pxMb, ModbusRequest_t *pxRequest) {
          ((pxRequest->xFrame.ucLengthCode == 0) || (pxRequest->xFrame.pucData == libNULL)))) 
         return cl_false;
     mb->xRequest = *pxRequest;
-    mb->pxIface->vFlush(mb->pxIface->pxRxPhy);
+    mb->pxIface->pfFlush(mb->pxIface->pxRxPhy);
     mb->ucState = MODBUS_STATE_TRANSMITTING;
     return cl_true;
 }
+
+uint8_t modbus_init(modbus_t *pxMb, const modbus_config_t *pxConfig) __attribute__ ((alias ("bModbusInit")));
+void modbus_work(modbus_t *pxMb) __attribute__ ((alias ("vModbusWork")));
+uint8_t modbus_server_link_endpoints(modbus_t *pxMb, const modbus_endpoint_t *pxMbEp) __attribute__ ((alias ("bModbusServerLinkEndpoints")));
+uint8_t modbus_request(modbus_t *pxMb, modbus_request_t *pxRequest) __attribute__ ((alias ("bModbusRequest")));

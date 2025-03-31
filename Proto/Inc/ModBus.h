@@ -136,13 +136,19 @@ typedef struct {
 	uint8_t dummy[MODBUS_DESCRIPTOR_SIZE];
 } Modbus_t;
 
+typedef int32_t (*ModbusIfaceAvaliable_t)(void *pxPhy);
+typedef void (*ModbusIfaceFlash_t)(void *pxPhy);
+typedef int32_t (*ModbusIfaceRead_t)(void *pxPhy, uint8_t *pucBuf, uint16_t ulSize);
+typedef int32_t (*ModbusIfaceWrite_t)(void *pxPhy, const uint8_t *pucBuf, uint16_t ulSize);
+typedef uint32_t (*ModbusIfaceTimer_t)(const void *pxTimerPhy);
+
 typedef struct {
-	int32_t (*lAvailableToWrite)(void *pxPhy);
-	int32_t (*lAvailableToRead)(void *pxPhy);
-	int32_t (*lRead)(void *pxPhy, uint8_t *pucBuf, uint32_t ulSize);
-	int32_t (*lWrite)(void *pxPhy, uint8_t *pucBuf, uint32_t ulSize);
-	void (*vFlush)(void *pxPhy);
-	uint32_t (*ulTimerMs)(const void *pxTimerPhy);
+	ModbusIfaceAvaliable_t pfAvailableToWrite;
+	ModbusIfaceAvaliable_t pfAvailableToRead;
+	ModbusIfaceRead_t pfRead;
+	ModbusIfaceWrite_t pfWrite;
+	ModbusIfaceFlash_t pfFlush;
+	ModbusIfaceTimer_t pfTimer;
 	void *pxTxPhy;
 	void *pxRxPhy;
 	void *pxTimerPhy;
@@ -167,6 +173,32 @@ uint8_t bModbusRequest(Modbus_t *pxMb, ModbusRequest_t *pxRequest);
 static inline uint8_t bModbusIsErrorFrame(ModbusFrame_t *pxFrame) {
     return ((pxFrame == libNULL) || ((pxFrame->ucFunc & MODBUS_ERROR_FLAG) != 0));
 }
+
+/*!
+  Snake notation
+*/
+
+typedef Modbus_t modbus_t;
+typedef ModbusConfig_t modbus_config_t;
+typedef ModbusEndpoint_t modbus_endpoint_t;
+typedef ModbusRequest_t modbus_request_t;
+typedef ModbusFrame_t modbus_frame_t;
+typedef ModbusCb_t modbus_cb_t;
+typedef ModbusResult_t modbus_result_t;
+typedef ModbusHandler_t modbus_handler_t;
+typedef ModbusIface_t modbus_iface_t;
+
+typedef ModbusIfaceAvaliable_t modbus_iface_avaliable_t;
+typedef ModbusIfaceFlash_t modbus_iface_flash_t;
+typedef ModbusIfaceRead_t modbus_iface_read_t;
+typedef ModbusIfaceWrite_t modbus_iface_write_t;
+typedef ModbusIfaceTimer_t modbus_iface_timer_t;
+
+uint8_t modbus_init(modbus_t *, const modbus_config_t *);
+void modbus_work(modbus_t *);
+uint8_t modbus_server_link_endpoints(modbus_t *, const modbus_endpoint_t *);
+uint8_t modbus_request(modbus_t *, modbus_request_t *);
+static inline uint8_t modbus_is_error_frame(modbus_frame_t *)  __attribute__ ((alias ("bModbusIsErrorFrame")));
 
 #ifdef __cplusplus
 }

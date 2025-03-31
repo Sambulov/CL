@@ -153,7 +153,26 @@ static inline void vModbusInitRequestWriteHoldings(ModbusRequest_t *pxOutReq, vo
 	pxOutReq->xFrame.ucLengthCode = (usAmount * 2);
 }
 
+/*!
+  Snake notation
+*/
 
+static inline void modbus_init_request_read_outputs(modbus_request_t *, void*, modbus_cb_t, uint8_t, uint16_t, uint16_t)\
+    __attribute__ ((alias ("vModbusInitRequestReadOutputs")));
+static inline void modbus_init_request_read_inputs(modbus_request_t *, void*, modbus_cb_t, uint8_t, uint16_t, uint16_t)\
+    __attribute__ ((alias ("vModbusInitRequestReadInputs")));
+static inline void modbus_init_request_read_holdings(modbus_request_t *, void*, modbus_cb_t, uint8_t, uint16_t, uint16_t)\
+    __attribute__ ((alias ("vModbusInitRequestReadHoldings")));
+static inline void modbus_init_request_read_input_registers(modbus_request_t *, void*, modbus_cb_t, uint8_t, uint16_t, uint16_t)\
+    __attribute__ ((alias ("vModbusInitRequestReadInputRegisters")));
+static inline void modbus_init_request_write_output(modbus_request_t *, void*, modbus_cb_t, uint8_t, uint16_t, uint8_t)\
+    __attribute__ ((alias ("vModbusInitRequestWriteOutput")));
+static inline void modbus_init_request_write_holding(modbus_request_t *, void*, modbus_cb_t, uint8_t, uint16_t, uint16_t)\
+    __attribute__ ((alias ("vModbusInitRequestWriteHolding")));
+static inline void modbus_init_request_write_coils(modbus_request_t *, void*, modbus_cb_t, uint8_t, uint16_t, uint16_t, uint8_t *)\
+    __attribute__ ((alias ("vModbusInitRequestWriteCoils")));
+static inline void modbus_init_request_write_holdings(modbus_request_t *, void*, modbus_cb_t, uint8_t, uint16_t, uint16_t, uint16_t *)\
+    __attribute__ ((alias ("vModbusInitRequestWriteHoldings")));
 
 #ifdef __cplusplus
 }
