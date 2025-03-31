@@ -1,5 +1,5 @@
 /*!
-    LinkedList.h
+    SimpleCircularBuffer.h
   
     Created on: 21.05.2024
         Author: Sambulov Dmitry

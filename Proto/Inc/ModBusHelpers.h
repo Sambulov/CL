@@ -1,5 +1,5 @@
 /*!
-   Modbus.h
+   ModBusHelpers.h
 
     Created on: 25.04.2023
         Author: Sambulov Dmitry

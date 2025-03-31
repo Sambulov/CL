@@ -626,7 +626,6 @@ int32_t lFifoVPrintf(Fifo_t *pxFifo, const uint8_t* pcFormat, va_list xArgs) {
     int32_t streamed = 0;
     int32_t result;
     uint32_t cursor = 0;
-    uint8_t symbol;
     while (pcFormat[cursor] != '\0') {
         result = 0;
 		uint32_t from = cursor;

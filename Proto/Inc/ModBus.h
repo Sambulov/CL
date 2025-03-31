@@ -13,7 +13,7 @@
 extern "C" {
 #endif
 
-#define MODBUS_DESCRIPTOR_SIZE              64
+#define MODBUS_DESCRIPTOR_SIZE              72
 
 #define MODBUS_ERROR_FLAG                   0x80
 
