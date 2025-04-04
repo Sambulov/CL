@@ -40,6 +40,7 @@ typedef struct {
     uint8_t ucState    :7,
             bAsciiMode :1;
 	uint8_t ucPayLoadBufferSize;
+    uint32_t req_id;
 	uint8_t *pucPayLoadBuffer;
 	ModbusRequest_t xRequest;
     const ModbusEndpoint_t *pxEndpoints;
@@ -477,6 +478,7 @@ uint8_t bModbusServerLinkEndpoints(Modbus_t *pxMb, const ModbusEndpoint_t *pxMbE
         mb->pxEndpoints = pxMbEp;
         if(pxMbEp != libNULL) mb->ucState = MODBUS_STATE_RECEIVING;
         else mb->ucState = MODBUS_STATE_IDLE;
+        mb->ucXferState = 0;
     }
     return check;
 }
@@ -498,26 +500,46 @@ uint8_t bModbusInit(Modbus_t *pxMb, const ModbusConfig_t *pxConfig) {
     return cl_true;
 }
 
-uint8_t bModbusRequest(Modbus_t *pxMb, ModbusRequest_t *pxRequest) {
+uint8_t bModbusDeinit(Modbus_t *pxMb) {
+	if (pxMb == libNULL) return cl_true;
+    _prModbus_t *mb = (_prModbus_t*)pxMb;
+    mb->ucState = MODBUS_STATE_IDLE;
+    mb->pxEndpoints = libNULL;
+    mb->pxIface->pfFlush(mb->pxIface->pxTxPhy);
+    return cl_true;
+}
+
+uint32_t ulModbusRequest(Modbus_t *pxMb, ModbusRequest_t *pxRequest) {
     _prModbus_t *mb = (_prModbus_t *)pxMb;
 	if ((pxMb == libNULL) || 
         (mb->pxEndpoints != libNULL) || /* server mode */
         (mb->ucState != MODBUS_STATE_IDLE) ||
         (pxRequest == libNULL))
-        return cl_false;
+        return 0;
     mb->eTxType = _eModbusFuncToPacketType(pxRequest->xFrame.ucFunc, 1);
     mb->eRxType = _eModbusFuncToPacketType(pxRequest->xFrame.ucFunc, 0);
     if((mb->eTxType == eModbusPacketNone) ||
        ((mb->eTxType & eModbusPacketVariableLen) && 
          ((pxRequest->xFrame.ucLengthCode == 0) || (pxRequest->xFrame.pucData == libNULL)))) 
-        return cl_false;
+        return 0;
     mb->xRequest = *pxRequest;
     mb->pxIface->pfFlush(mb->pxIface->pxRxPhy);
+    mb->ucXferState = 0;
     mb->ucState = MODBUS_STATE_TRANSMITTING;
+    mb->req_id++;
+    if(!mb->req_id) mb->req_id = 1;
+    return mb->req_id;
+}
+
+uint8_t bModbusCancelRequest(Modbus_t *pxMb, uint32_t ulRequestId) {
+    _prModbus_t *mb = (_prModbus_t *)pxMb;
+	if ((pxMb == libNULL) || (mb->req_id != ulRequestId) || (mb->pxEndpoints != libNULL)/* server mode */) return cl_false;
+    mb->ucState = MODBUS_STATE_IDLE;
     return cl_true;
 }
 
-uint8_t modbus_init(modbus_t *pxMb, const modbus_config_t *pxConfig) __attribute__ ((alias ("bModbusInit")));
-void modbus_work(modbus_t *pxMb) __attribute__ ((alias ("vModbusWork")));
-uint8_t modbus_server_link_endpoints(modbus_t *pxMb, const modbus_endpoint_t *pxMbEp) __attribute__ ((alias ("bModbusServerLinkEndpoints")));
-uint8_t modbus_request(modbus_t *pxMb, modbus_request_t *pxRequest) __attribute__ ((alias ("bModbusRequest")));
+uint8_t modbus_init(modbus_t *, const modbus_config_t *) __attribute__ ((alias ("bModbusInit")));
+void modbus_work(modbus_t *) __attribute__ ((alias ("vModbusWork")));
+uint8_t modbus_server_link_endpoints(modbus_t *, const modbus_endpoint_t *) __attribute__ ((alias ("bModbusServerLinkEndpoints")));
+uint32_t modbus_request(modbus_t *, modbus_request_t *) __attribute__ ((alias ("ulModbusRequest")));
+uint8_t modbus_cancel_request(modbus_t *, uint32_t) __attribute__ ((alias ("bModbusCancelRequest")));

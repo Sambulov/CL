@@ -13,7 +13,7 @@
 extern "C" {
 #endif
 
-#define MODBUS_DESCRIPTOR_SIZE              64
+#define MODBUS_DESCRIPTOR_SIZE              68
 
 #define MODBUS_ERROR_FLAG                   0x80
 
@@ -168,7 +168,7 @@ void vModbusWork(Modbus_t *pxMb);
 
 uint8_t bModbusServerLinkEndpoints(Modbus_t *pxMb, const ModbusEndpoint_t *pxMbEp);
 
-uint8_t bModbusRequest(Modbus_t *pxMb, ModbusRequest_t *pxRequest);
+uint32_t ulModbusRequest(Modbus_t *pxMb, ModbusRequest_t *pxRequest);
 
 static inline uint8_t bModbusIsErrorFrame(ModbusFrame_t *pxFrame) {
     return ((pxFrame == libNULL) || ((pxFrame->ucFunc & MODBUS_ERROR_FLAG) != 0));
@@ -197,7 +197,9 @@ typedef ModbusIfaceTimer_t modbus_iface_timer_t;
 uint8_t modbus_init(modbus_t *, const modbus_config_t *);
 void modbus_work(modbus_t *);
 uint8_t modbus_server_link_endpoints(modbus_t *, const modbus_endpoint_t *);
-uint8_t modbus_request(modbus_t *, modbus_request_t *);
+uint32_t modbus_request(modbus_t *, modbus_request_t *);
+uint8_t modbus_cancel_request(modbus_t *, uint32_t);
+
 static inline uint8_t modbus_is_error_frame(modbus_frame_t *)  __attribute__ ((alias ("bModbusIsErrorFrame")));
 
 #ifdef __cplusplus
