@@ -16,108 +16,100 @@ extern "C" {
 #include "ModBus.h"
 
 /*!
-	@brief Init request structure for read discrete outputs, modbus coils, function 0x01
-	@param[out] pxOutReq			Request buffer
+	@brief Init frame structure for read discrete outputs, modbus coils, function 0x01
+	@param[out] pxOutFrame			Frame buffer
 	@param[in] pxContext            Callback context
 	@param[in] pfCb	                Callback function
 	@param[in] ucDevAddr            Modbus device address
 	@param[in] usRegAddr            Modbus register address
 	@param[in] usAmount             Amount to read
 */
-static inline void vModbusInitRequestReadOutputs(ModbusRequest_t *pxOutReq, void* pxContext, ModbusCb_t pfCb, 
-	                                             uint8_t ucDevAddr, uint16_t usRegAddr, uint16_t usAmount) {
-	if((pxOutReq == libNULL) || (usAmount == 0)) return;
-	pxOutReq->pxContext = pxContext;
-	pxOutReq->pfOnComplete = pfCb;
-	pxOutReq->xFrame.ucAddr = ucDevAddr;
-	pxOutReq->xFrame.ucFunc = MB_FUNC_READ_OUTPUTS;
-	pxOutReq->xFrame.usRegAddr = usRegAddr;
-	pxOutReq->xFrame.usRegValueCount = usAmount;
+static inline void vModbusInitFrameReadOutputs(ModbusFrame_t *pxOutFrame, uint8_t ucDevAddr, uint16_t usRegAddr, uint16_t usAmount) {
+	if((pxOutFrame == libNULL) || (usAmount == 0)) return;
+	pxOutFrame->ucAddr = ucDevAddr;
+	pxOutFrame->ucFunc = MB_FUNC_READ_OUTPUTS;
+	pxOutFrame->usRegAddr = usRegAddr;
+	pxOutFrame->usRegValueCount = usAmount;
 }
 
 /*!
-	@brief Init request structure for read discrete inputs, function 0x02
-	@param[out] pxOutReq			Request buffer
+	@brief Init frame structure for read discrete inputs, function 0x02
+	@param[out] pxOutFrame			Frame buffer
 	@param[in] pxContext            Callback context
 	@param[in] pfCb	                Callback function
 	@param[in] ucDevAddr            Modbus device address
 	@param[in] usRegAddr            Modbus register address
 	@param[in] usAmount             Amount to read
 */
-static inline void vModbusInitRequestReadInputs(ModbusRequest_t *pxOutReq, void* pxContext, ModbusCb_t pfCb, 
-	                                            uint8_t ucDevAddr, uint16_t usRegAddr, uint16_t usAmount) {
-	if((pxOutReq == libNULL) || (usAmount == 0)) return;
-	vModbusInitRequestReadOutputs(pxOutReq, pxContext, pfCb, ucDevAddr, usRegAddr, usAmount);
-	pxOutReq->xFrame.ucFunc = MB_FUNC_READ_INPUTS;
+static inline void vModbusInitFrameReadInputs(ModbusFrame_t *pxOutFrame, uint8_t ucDevAddr, uint16_t usRegAddr, uint16_t usAmount) {
+	if((pxOutFrame == libNULL) || (usAmount == 0)) return;
+	vModbusInitFrameReadOutputs(pxOutFrame, ucDevAddr, usRegAddr, usAmount);
+	pxOutFrame->ucFunc = MB_FUNC_READ_INPUTS;
 }
 
 /*!
-	@brief Init request structure for read analog outputs, modbus holding registers, function 0x03
-	@param[out] pxOutReq			Request buffer
+	@brief Init frame structure for read analog outputs, modbus holding registers, function 0x03
+	@param[out] pxOutFrame			Frame buffer
 	@param[in] pxContext            Callback context
 	@param[in] pfCb	                Callback function
 	@param[in] ucDevAddr            Modbus device address
 	@param[in] usRegAddr            Modbus register address
 	@param[in] usAmount             Amount to read
 */
-static inline void vModbusInitRequestReadHoldings(ModbusRequest_t *pxOutReq, void* pxContext, ModbusCb_t pfCb, 
-	                                              uint8_t ucDevAddr, uint16_t usRegAddr, uint16_t usAmount) {
-	if((pxOutReq == libNULL) || (usAmount == 0)) return;
-	vModbusInitRequestReadOutputs(pxOutReq, pxContext, pfCb, ucDevAddr, usRegAddr, usAmount);
-	pxOutReq->xFrame.ucFunc = MB_FUNC_READ_HOLDINGS;
+static inline void vModbusInitFrameReadHoldings(ModbusFrame_t *pxOutFrame, uint8_t ucDevAddr, uint16_t usRegAddr, uint16_t usAmount) {
+	if((pxOutFrame == libNULL) || (usAmount == 0)) return;
+	vModbusInitFrameReadOutputs(pxOutFrame, ucDevAddr, usRegAddr, usAmount);
+	pxOutFrame->ucFunc = MB_FUNC_READ_HOLDINGS;
 }
 
 /*!
-	@brief Init request structure for read analog inputs, modbus input registers, function 0x04
-	@param[out] pxOutReq			Request buffer
+	@brief Init frame structure for read analog inputs, modbus input registers, function 0x04
+	@param[out] pxOutFrame			Frame buffer
 	@param[in] pxContext            Callback context
 	@param[in] pfCb	                Callback function
 	@param[in] ucDevAddr            Modbus device address
 	@param[in] usRegAddr            Modbus register address
 	@param[in] usAmount             Amount to read
 */
-static inline void vModbusInitRequestReadInputRegisters(ModbusRequest_t *pxOutReq, void* pxContext, ModbusCb_t pfCb, 
-	                                                    uint8_t ucDevAddr, uint16_t usRegAddr, uint16_t usAmount) {
-	if((pxOutReq == libNULL) || (usAmount == 0)) return;
-	vModbusInitRequestReadOutputs(pxOutReq, pxContext, pfCb, ucDevAddr, usRegAddr, usAmount);
-	pxOutReq->xFrame.ucFunc = MB_FUNC_READ_INPUT_REGISTERS;
+static inline void vModbusInitFrameReadInputRegisters(ModbusFrame_t *pxOutFrame, uint8_t ucDevAddr, uint16_t usRegAddr, uint16_t usAmount) {
+	if((pxOutFrame == libNULL) || (usAmount == 0)) return;
+	vModbusInitFrameReadOutputs(pxOutFrame, ucDevAddr, usRegAddr, usAmount);
+	pxOutFrame->ucFunc = MB_FUNC_READ_INPUT_REGISTERS;
 }
 
 /*!
-	@brief Init request structure for write descrete output, modbus coil, function 0x05
-	@param[out] pxOutReq			Request buffer
+	@brief Init frame structure for write descrete output, modbus coil, function 0x05
+	@param[out] pxOutFrame			Frame buffer
 	@param[in] pxContext            Callback context
 	@param[in] pfCb	                Callback function
 	@param[in] ucDevAddr            Modbus device address
 	@param[in] usRegAddr            Modbus register address
 	@param[in] bState               Value: 0-reset, !0- set
 */
-static inline void vModbusInitRequestWriteOutput(ModbusRequest_t *pxOutReq, void* pxContext, ModbusCb_t pfCb, 
-	                                             uint8_t ucDevAddr, uint16_t usRegAddr, uint8_t bState) {
-	if(pxOutReq == libNULL) return;
-	vModbusInitRequestReadOutputs(pxOutReq, pxContext, pfCb, ucDevAddr, usRegAddr, bState? 0xFF00 :0x0000);
-	pxOutReq->xFrame.ucFunc = MB_FUNC_WRITE_OUTPUT;
+static inline void vModbusInitFrameWriteOutput(ModbusFrame_t *pxOutFrame, uint8_t ucDevAddr, uint16_t usRegAddr, uint8_t bState) {
+	if(pxOutFrame == libNULL) return;
+	vModbusInitFrameReadOutputs(pxOutFrame, ucDevAddr, usRegAddr, bState? 0xFF00 :0x0000);
+	pxOutFrame->ucFunc = MB_FUNC_WRITE_OUTPUT;
 }
 
 /*!
-	@brief Init request structure for write analog output, modbus holding register, function 0x06
-	@param[out] pxOutReq			Request buffer
+	@brief Init frame structure for write analog output, modbus holding register, function 0x06
+	@param[out] pxOutFrame			Frame buffer
 	@param[in] pxContext            Callback context
 	@param[in] pfCb	                Callback function
 	@param[in] ucDevAddr            Modbus device address
 	@param[in] usRegAddr            Modbus register address
 	@param[in] usValue              Register value
 */
-static inline void vModbusInitRequestWriteHolding(ModbusRequest_t *pxOutReq, void* pxContext, ModbusCb_t pfCb, 
-	                                              uint8_t ucDevAddr, uint16_t usRegAddr, uint16_t usValue) {
-	if(pxOutReq == libNULL) return;
-	vModbusInitRequestReadOutputs(pxOutReq, pxContext, pfCb, ucDevAddr, usRegAddr, usValue);
-	pxOutReq->xFrame.ucFunc = MB_FUNC_WRITE_OUTPUT;
+static inline void vModbusInitFrameWriteHolding(ModbusFrame_t *pxOutFrame, uint8_t ucDevAddr, uint16_t usRegAddr, uint16_t usValue) {
+	if(pxOutFrame == libNULL) return;
+	vModbusInitFrameReadOutputs(pxOutFrame, ucDevAddr, usRegAddr, usValue);
+	pxOutFrame->ucFunc = MB_FUNC_WRITE_OUTPUT;
 }
 
 /*!
-	@brief Init request structure for write multiple descrete outputs, modbus coils, function 0x0F
-	@param[out] pxOutReq			Request buffer
+	@brief Init frame structure for write multiple descrete outputs, modbus coils, function 0x0F
+	@param[out] pxOutFrame			Frame buffer
 	@param[in] pxContext            Callback context
 	@param[in] pfCb	                Callback function
 	@param[in] ucDevAddr            Modbus device address
@@ -125,18 +117,17 @@ static inline void vModbusInitRequestWriteHolding(ModbusRequest_t *pxOutReq, voi
 	@param[in] usAmount             Amount to write
 	@param[in] pucValues            Coils states
 */
-static inline void vModbusInitRequestWriteCoils(ModbusRequest_t *pxOutReq, void* pxContext, ModbusCb_t pfCb, 
-	                                            uint8_t ucDevAddr, uint16_t usRegAddr, uint16_t usAmount, uint8_t *pucValues) {
-	if((pxOutReq == libNULL) || (usAmount == 0) || (usAmount > 2040)) return;
-	vModbusInitRequestReadOutputs(pxOutReq, pxContext, pfCb, ucDevAddr, usRegAddr, usAmount);
-	pxOutReq->xFrame.ucFunc = MB_FUNC_WRITE_COILS;
-	pxOutReq->xFrame.pucData = pucValues;
-	pxOutReq->xFrame.ucLengthCode = (usAmount >> 3);
+static inline void vModbusInitFrameWriteCoils(ModbusFrame_t *pxOutFrame, uint8_t ucDevAddr, uint16_t usRegAddr, uint16_t usAmount, uint8_t *pucValues) {
+	if((pxOutFrame == libNULL) || (usAmount == 0) || (usAmount > 2040)) return;
+	vModbusInitFrameReadOutputs(pxOutFrame, ucDevAddr, usRegAddr, usAmount);
+	pxOutFrame->ucFunc = MB_FUNC_WRITE_COILS;
+	pxOutFrame->pucData = pucValues;
+	pxOutFrame->ucLengthCode = (usAmount >> 3);
 }
 
 /*!
-	@brief Init request structure for write multiple analog outputs, modbus holding registres, function 0x10
-	@param[out] pxOutReq			Request buffer
+	@brief Init frame structure for write multiple analog outputs, modbus holding registres, function 0x10
+	@param[out] pxOutFrame			Frame buffer
 	@param[in] pxContext            Callback context
 	@param[in] pfCb	                Callback function
 	@param[in] ucDevAddr            Modbus device address
@@ -144,35 +135,58 @@ static inline void vModbusInitRequestWriteCoils(ModbusRequest_t *pxOutReq, void*
 	@param[in] usAmount             Amount to write
 	@param[in] pusValues            Registers values
 */
-static inline void vModbusInitRequestWriteHoldings(ModbusRequest_t *pxOutReq, void* pxContext, ModbusCb_t pfCb, 
-	                                            uint8_t ucDevAddr, uint16_t usRegAddr, uint16_t usAmount, uint16_t *pusValues) {
-	if((pxOutReq == libNULL) || (usAmount == 0) || (usAmount > 127)) return;
-	vModbusInitRequestReadOutputs(pxOutReq, pxContext, pfCb, ucDevAddr, usRegAddr, usAmount);
-	pxOutReq->xFrame.ucFunc = MB_FUNC_WRITE_HOLDINGS;
-	pxOutReq->xFrame.pucData = (uint8_t *)pusValues;
-	pxOutReq->xFrame.ucLengthCode = (usAmount * 2);
+static inline void vModbusInitFrameWriteHoldings(ModbusFrame_t *pxOutFrame, uint8_t ucDevAddr, uint16_t usRegAddr, uint16_t usAmount, uint16_t *pusValues) {
+	if((pxOutFrame == libNULL) || (usAmount == 0) || (usAmount > 127)) return;
+	vModbusInitFrameReadOutputs(pxOutFrame, ucDevAddr, usRegAddr, usAmount);
+	pxOutFrame->ucFunc = MB_FUNC_WRITE_HOLDINGS;
+	pxOutFrame->pucData = (uint8_t *)pusValues;
+	pxOutFrame->ucLengthCode = (usAmount * 2);
 }
+
+/*!
+	@brief Init frame structure for error response
+	@param[out] pxOutFrame			Frame buffer
+	@param[in] ucDevAddr            Modbus device address
+	@param[in] ucFunc               Modbus function
+	@param[in] eErr                 Error code
+*/
+static inline void vModbusInitFrameError(ModbusFrame_t *pxOutFrame, uint8_t ucDevAddr, uint8_t ucFunc, ModbusErrorCode_t eErr) {
+	if(pxOutFrame == libNULL) return;
+	pxOutFrame->ucFunc = ucFunc | MODBUS_ERROR_FLAG;
+	pxOutFrame->ucAddr = ucDevAddr;
+    pxOutFrame->ucLengthCode = eErr;
+}
+
+
+
+//typedef uint8_t (*ReadDiscreteHandler_t)(uint16_t usAddr);
+//typedef uint16_t (*ReadRegisterHandler_t)(uint16_t usAddr);
+//typedef void (*WriteRegisterHandler_t)(uint16_t usAddr, uint16_t usValue);
+//typedef uint8_t (*AssertHandler_t)(uint16_t usAddr, uint16_t pusLengthValue);
+
 
 /*!
   Snake notation
 */
 
-static inline void modbus_init_request_read_outputs(modbus_request_t *, void*, modbus_cb_t, uint8_t, uint16_t, uint16_t)\
-    __attribute__ ((alias ("vModbusInitRequestReadOutputs")));
-static inline void modbus_init_request_read_inputs(modbus_request_t *, void*, modbus_cb_t, uint8_t, uint16_t, uint16_t)\
-    __attribute__ ((alias ("vModbusInitRequestReadInputs")));
-static inline void modbus_init_request_read_holdings(modbus_request_t *, void*, modbus_cb_t, uint8_t, uint16_t, uint16_t)\
-    __attribute__ ((alias ("vModbusInitRequestReadHoldings")));
-static inline void modbus_init_request_read_input_registers(modbus_request_t *, void*, modbus_cb_t, uint8_t, uint16_t, uint16_t)\
-    __attribute__ ((alias ("vModbusInitRequestReadInputRegisters")));
-static inline void modbus_init_request_write_output(modbus_request_t *, void*, modbus_cb_t, uint8_t, uint16_t, uint8_t)\
-    __attribute__ ((alias ("vModbusInitRequestWriteOutput")));
-static inline void modbus_init_request_write_holding(modbus_request_t *, void*, modbus_cb_t, uint8_t, uint16_t, uint16_t)\
-    __attribute__ ((alias ("vModbusInitRequestWriteHolding")));
-static inline void modbus_init_request_write_coils(modbus_request_t *, void*, modbus_cb_t, uint8_t, uint16_t, uint16_t, uint8_t *)\
-    __attribute__ ((alias ("vModbusInitRequestWriteCoils")));
-static inline void modbus_init_request_write_holdings(modbus_request_t *, void*, modbus_cb_t, uint8_t, uint16_t, uint16_t, uint16_t *)\
-    __attribute__ ((alias ("vModbusInitRequestWriteHoldings")));
+static inline void modbus_init_frame_read_outputs(modbus_frame_t *, uint8_t, uint16_t, uint16_t)\
+    __attribute__ ((alias ("vModbusInitFrameReadOutputs")));
+static inline void modbus_init_frame_read_inputs(modbus_frame_t *, uint8_t, uint16_t, uint16_t)\
+    __attribute__ ((alias ("vModbusInitFrameReadInputs")));
+static inline void modbus_init_frame_read_holdings(modbus_frame_t *, uint8_t, uint16_t, uint16_t)\
+    __attribute__ ((alias ("vModbusInitFrameReadHoldings")));
+static inline void modbus_init_frame_read_input_registers(modbus_frame_t *, uint8_t, uint16_t, uint16_t)\
+    __attribute__ ((alias ("vModbusInitFrameReadInputRegisters")));
+static inline void modbus_init_frame_write_output(modbus_frame_t *, uint8_t, uint16_t, uint8_t)\
+    __attribute__ ((alias ("vModbusInitFrameWriteOutput")));
+static inline void modbus_init_frame_write_holding(modbus_frame_t *, uint8_t, uint16_t, uint16_t)\
+    __attribute__ ((alias ("vModbusInitFrameWriteHolding")));
+static inline void modbus_init_frame_write_coils(modbus_frame_t *, uint8_t, uint16_t, uint16_t, uint8_t *)\
+    __attribute__ ((alias ("vModbusInitFrameWriteCoils")));
+static inline void modbus_init_frame_write_holdings(modbus_frame_t *, uint8_t, uint16_t, uint16_t, uint16_t *)\
+    __attribute__ ((alias ("vModbusInitFrameWriteHoldings")));
+static inline void modbus_init_frame_error(ModbusFrame_t *, uint8_t, uint8_t, ModbusErrorCode_t)
+    __attribute__ ((alias ("vModbusInitFrameError")));
 
 #ifdef __cplusplus
 }

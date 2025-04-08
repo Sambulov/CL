@@ -52,15 +52,11 @@ uint8_t ucCrc8Dallas(const uint8_t *pucData, uint32_t ulLen, const uint8_t *pucC
 	return crc;
 }
 
-uint16_t usCrc16ModbusRtu(const uint8_t *pucData, int32_t ulLen, const uint16_t *pusCrc) {
+uint16_t usCrc16ModbusRtu(const uint8_t *pucData, uint16_t usLen, const uint16_t *pusCrc) {
 	uint16_t crc = 0xFFFF;
-	if (pusCrc != libNULL) {
-		crc = *pusCrc;
-	}
+	if (pusCrc != libNULL) crc = *pusCrc;
 	if (pucData != libNULL) {
-		for (int32_t i = 0; i < ulLen; i++) {
-			crc = _usCrc16ModbusRtuNext(crc, pucData[i]);
-		}
+		while (usLen--) crc = _usCrc16ModbusRtuNext(crc, *pucData++);
 	}
 	return crc;
 }
@@ -68,7 +64,7 @@ uint16_t usCrc16ModbusRtu(const uint8_t *pucData, int32_t ulLen, const uint16_t 
 
 uint32_t crc32(const void *data, uint32_t len, uint32_t init, const uint32_t poly, crc32_options_t opt)\
                                                   __attribute__ ((alias ("ulCrc32")));
-uint16_t crc16_modbus_rtu(const uint8_t *data, int32_t len, const uint16_t *crc)\
+uint16_t crc16_modbus_rtu(const uint8_t *data, uint16_t len, const uint16_t *crc)\
                                                   __attribute__ ((alias ("usCrc16ModbusRtu")));
 uint8_t crc8_dallas(const uint8_t *data, uint32_t len, const uint8_t *crc)\
                                                   __attribute__ ((alias ("ucCrc8Dallas")));

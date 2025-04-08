@@ -12,7 +12,7 @@ typedef enum {
 } Crc32Options_t;
 
 uint8_t ucCrc8Dallas(const uint8_t *pucData, uint32_t ulLen, const uint8_t *pucCrc);
-uint16_t usCrc16ModbusRtu(const uint8_t *pucData, int32_t ulLen, const uint16_t *pusCrc);
+uint16_t usCrc16ModbusRtu(const uint8_t *pucData, uint16_t usLen, const uint16_t *pusCrc);
 uint32_t ulCrc32(const void *pvData, uint32_t ulLen, uint32_t ulInit, const uint32_t ulPoly, Crc32Options_t eOpt);
 
 #define CRC_32_AIXM(data, len) ulCrc32(data, len, 0x00000000, 0x814141AB, !CRC32_REFLECT_IN | !CRC32_REFLECT_OUT | !CRC32_INVERT_OUT);
@@ -35,7 +35,7 @@ uint32_t ulCrc32(const void *pvData, uint32_t ulLen, uint32_t ulInit, const uint
 typedef Crc32Options_t crc32_options_t;
 
 uint32_t crc32(const void *data, uint32_t len, uint32_t init, const uint32_t poly, crc32_options_t opt);
-uint16_t crc16_modbus_rtu(const uint8_t *data, int32_t len, const uint16_t *crc);
+uint16_t crc16_modbus_rtu(const uint8_t *data, uint16_t len, const uint16_t *crc);
 uint8_t crc8_dallas(const uint8_t *data, uint32_t len, const uint8_t *crc);
 
 #ifdef __cplusplus

@@ -60,7 +60,7 @@ CircularBuffer_t *pxCircularBufferInit(uint8_t *pucBuffer, uint16_t uBufferSize)
 
 int32_t lCircularBufferAvailable(CircularBuffer_t *pxDescriptor) {
 	_CircularBuffer_t *desc = _pxCircularBufferCastDescriptor(pxDescriptor);
-	uint16_t av = -1;
+	int32_t av = -1;
 	if (desc != libNULL) {
 		if (desc->head == 0xFFFF) av = desc->size;
 		else av = ((desc->head >= desc->tail)? (desc->head - desc->tail): ((desc->size - desc->tail) + desc->head));
@@ -70,7 +70,7 @@ int32_t lCircularBufferAvailable(CircularBuffer_t *pxDescriptor) {
 
 int32_t lCircularBufferFree(CircularBuffer_t *pxDescriptor) {
 	_CircularBuffer_t *desc = _pxCircularBufferCastDescriptor(pxDescriptor);
-	uint16_t av = -1;
+	int32_t av = -1;
 	if (desc != libNULL) {
 		uint16_t tail, head;
 		_vCircularBufferGetWrPtrs(desc, &tail, &head);
@@ -86,7 +86,7 @@ int32_t lCircularBufferRead(CircularBuffer_t *pxDescriptor, uint8_t *pucOutBuf, 
 		return -1;
 	}
 	int32_t res = 0;
-	uint16_t dataCount = lCircularBufferAvailable(pxDescriptor);
+	int32_t dataCount = lCircularBufferAvailable(pxDescriptor);
 	if ((uSkip || uCount) && dataCount) {
 		uint16_t tail = desc->tail;
 		uint16_t head = desc->head;

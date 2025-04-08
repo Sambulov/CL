@@ -142,14 +142,14 @@ int32_t lFifoAvailableToWrite(Fifo_t *pxDescriptor) {
 static inline int32_t _lFifoWrite(Fifo_t *pxDescriptor, const uint8_t *pucData, uint16_t uCount, uint8_t bRepeatMode, uint8_t bAllOrNothing, uint8_t bAsString) {
 	_Fifo_t *desc = (_Fifo_t *)pxDescriptor;
 	if (bFifoIsValid(pxDescriptor)) {
-		int wrBufIndex = 0;
+		int32_t wrBufIndex = 0;
 		if (desc->isDouble) {
 			wrBufIndex = !(desc->rdBufIndex);
 		}
 		int32_t writed = pxDescriptor->pxIface->pfBufferWrte(desc->buffer[wrBufIndex], pucData, uCount, bRepeatMode, bAllOrNothing, bAsString);
 		if (writed >= 0 && _bSwitchBuffer(desc)) {
 			if ((writed == 0) || (((!bAsString)&&(writed < uCount)) || ((bAsString)&&(pucData[writed - 1] != '\0')))) {
-				int res = pxDescriptor->pxIface->pfBufferWrte(desc->buffer[!desc->rdBufIndex], pucData + writed, uCount - writed, bRepeatMode, bAllOrNothing, bAsString);
+				int32_t res = pxDescriptor->pxIface->pfBufferWrte(desc->buffer[!desc->rdBufIndex], pucData + writed, uCount - writed, bRepeatMode, bAllOrNothing, bAsString);
 				if (res > 0) {
 					writed += res;
 				}
