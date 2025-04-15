@@ -15,7 +15,7 @@ extern "C" {
 
 #define MODBUS_ERROR_FLAG                   0x80
 
-#define MODBUS_DESCRIPTOR_SIZE              52
+#define MODBUS_DESCRIPTOR_SIZE              64
 
 typedef struct {
 	CL_PRIVATE(MODBUS_DESCRIPTOR_SIZE);
@@ -137,13 +137,13 @@ typedef struct {
 	ModbusIfaceRead_t pfRead;                  /* Method to receive data */
 	ModbusIfaceWrite_t pfWrite;                /* Method to send data */
 	ModbusIfaceTimer_t pfTimer;                /* Method to get timestamp */
-	void *pxTxContext;                         /* Context for output methods */
-	void *pxRxContext;                         /* Context for input methods */
-	void *pxTimerContext;                      /* Context for timer */
 } ModbusIface_t;
 
 typedef struct {
 	const ModbusIface_t *pxIface;              /* Modbus extern interface  */
+	void *pxTxContext;                         /* Context for pfWrite */
+	void *pxRxContext;                         /* Context for pfRead */
+	void *pxTimerContext;                      /* Context for pfTimer */
 	uint8_t *pucPayLoadBuffer;                 /* Modbus payload buffer */
 	uint8_t ucPayLoadBufferSize;               /* Modbus payload buffer size */
 	uint16_t rx_timeout;                       /* Receive timeout in interface timer time units */

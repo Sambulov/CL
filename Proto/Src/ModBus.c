@@ -35,6 +35,9 @@ typedef struct {
     uint32_t req_id;
 	uint8_t *pucPayLoadBuffer;
     ModbusCb_t pfOnComplete;
+    void *pxTxContext;
+	void *pxRxContext;
+	void *pxTimerContext;
  	void *pxCbContext;
     const ModbusEndpoint_t *pxEndpoints;
 } _prModbus_t;
@@ -115,11 +118,11 @@ static uint16_t _usCrc16ModbusAscii(const uint8_t *pucData, uint16_t ulLen, cons
 }
 
 static inline int32_t _lRead(_prModbus_t *pxMb, uint8_t *pucData, uint16_t usSize) {
-    return pxMb->pxIface->pfRead(pxMb->pxIface->pxRxContext, pucData, usSize);
+    return pxMb->pxIface->pfRead(pxMb->pxRxContext, pucData, usSize);
 }
 
 static inline int32_t _lWrite(_prModbus_t *pxMb, uint8_t *pucData, uint16_t usSize) {
-    return pxMb->pxIface->pfWrite(pxMb->pxIface->pxTxContext, pucData, usSize);
+    return pxMb->pxIface->pfWrite(pxMb->pxTxContext, pucData, usSize);
 }
 
 static int32_t _bReceiveAscii(_prModbus_t *pxMb, uint8_t *out) {
@@ -353,7 +356,7 @@ static int8_t _RxFrame(_prModbus_t *pxMb, uint8_t bRequest) {
 }
 
 static void _vModbusServerWork(_prModbus_t *pxMb) {
-    uint16_t now = pxMb->pxIface->pfTimer(pxMb->pxIface->pxTimerContext);
+    uint16_t now = pxMb->pxIface->pfTimer(pxMb->pxTimerContext);
     if (!pxMb->bTransmitPhase) { /* Awaite request frame */
         if(pxMb->cXferState <= 1) pxMb->usTimer = now;
         pxMb->cXferState = _RxFrame(pxMb, cl_true);
@@ -375,7 +378,7 @@ static void _vModbusServerWork(_prModbus_t *pxMb) {
 }
 
 static void _vModbusClientWork(_prModbus_t *pxMb) {
-    uint16_t now = pxMb->pxIface->pfTimer(pxMb->pxIface->pxTimerContext);
+    uint16_t now = pxMb->pxIface->pfTimer(pxMb->pxTimerContext);
     if (pxMb->bTransmitPhase) {
         if(pxMb->cXferState <= 0) pxMb->usTimer = now;
         pxMb->cXferState = _TxFrame(pxMb);
@@ -457,6 +460,9 @@ uint8_t bModbusInit(Modbus_t *pxMb, const ModbusConfig_t *pxConfig) {
     mb->pxIface = pxConfig->pxIface;
     mb->ucPayLoadBufferSize = pxConfig->ucPayLoadBufferSize;
     mb->pucPayLoadBuffer = pxConfig->pucPayLoadBuffer;
+    mb->pxTimerContext = pxConfig->pxTimerContext;
+    mb->pxTxContext = pxConfig->pxTxContext;
+    mb->pxRxContext = pxConfig->pxRxContext;
     mb->rx_timeout = pxConfig->rx_timeout;
     mb->tx_timeout = pxConfig->tx_timeout;
     mb->bAsciiMode = pxConfig->bAsciiMode;
@@ -489,7 +495,7 @@ uint32_t ulModbusRequest(Modbus_t *pxMb, ModbusFrame_t *pxFrame, ModbusCb_t pfCa
         mem_cpy(mb->xFrame.pucData, pxFrame->pucData, pxFrame->ucLengthCode);
     }
     uint8_t dummy[16];
-    while(mb->pxIface->pfRead(mb->pxIface->pxRxContext, dummy, 4) > 0); /* flush input */
+    while(mb->pxIface->pfRead(mb->pxRxContext, dummy, 4) > 0); /* flush input */
     mb->cXferState = 0;
     mb->bTransmitPhase = 1;
     mb->bProcessing = 1;
