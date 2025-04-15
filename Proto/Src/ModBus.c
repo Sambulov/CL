@@ -282,7 +282,7 @@ static int8_t _RxFrame(_prModbus_t *pxMb, uint8_t bRequest) {
             /* fall through */
         case 3 /* Rx func */:
             if (lDataRead(pxMb, tmpBuffer, 1) <= 0) return 3;
-            pxMb->bSkeepFrame = (*tmpBuffer != frame->ucFunc);
+            pxMb->bSkeepFrame = ((*tmpBuffer & ~MODBUS_ERROR_FLAG) != frame->ucFunc);
             frame->ucFunc = *tmpBuffer;
             pxMb->ucCrc = usCrcCalc(tmpBuffer, 1, &pxMb->ucCrc);
             pxMb->eRxType = _eModbusFuncToPacketType(frame->ucFunc, bRequest);
@@ -392,7 +392,6 @@ static void _vModbusClientWork(_prModbus_t *pxMb) {
     else { /* Awaite response */
         pxMb->cXferState = _RxFrame(pxMb, cl_false);
         pxMb->bRequestComplete = (pxMb->cXferState <= 0) && !(pxMb->bSkeepFrame);
-        if(pxMb->bSkeepFrame) pxMb->usTimer = now; /* continue receiving */
         if ((uint16_t)(now - pxMb->usTimer) >= pxMb->rx_timeout) pxMb->bTimeout = 1;
     }
     if(pxMb->bRequestComplete || pxMb->bTimeout) {
@@ -495,7 +494,7 @@ uint32_t ulModbusRequest(Modbus_t *pxMb, ModbusFrame_t *pxFrame, ModbusCb_t pfCa
         mem_cpy(mb->xFrame.pucData, pxFrame->pucData, pxFrame->ucLengthCode);
     }
     uint8_t dummy[16];
-    while(mb->pxIface->pfRead(mb->pxRxContext, dummy, 4) > 0); /* flush input */
+    while(mb->pxIface->pfRead(mb->pxRxContext, dummy, 16) > 0); /* flush input */
     mb->cXferState = 0;
     mb->bTransmitPhase = 1;
     mb->bProcessing = 1;
