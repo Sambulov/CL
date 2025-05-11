@@ -512,8 +512,48 @@ uint8_t bModbusCancelRequest(Modbus_t *pxMb, uint32_t ulRequestId) {
     return cl_true;
 }
 
+uint8_t bModbusBusy(Modbus_t *pxMb) {
+    _prModbus_t *mb = (_prModbus_t *)pxMb;
+	return (pxMb != libNULL) && mb->bProcessing;
+}
+
+
+uint8_t *pucModbusResponseFrameData(ModbusFrame_t *pxFrame, uint8_t *pucCode, uint8_t *pucOutAmount, uint8_t *pucOutSize) {
+	*pucOutAmount = 0;
+	*pucOutSize = 0;
+	if(pxFrame == libNULL) return libNULL;
+    ModbusPacketType_t type = _eModbusFuncToPacketType(pxFrame->ucFunc, cl_false);
+    switch (pxFrame->ucFunc & ~MODBUS_ERROR_FLAG) {
+        case MB_FUNC_READ_OUTPUTS:
+        case MB_FUNC_READ_INPUTS:
+        *pucOutSize = 1;
+        break;
+    default:
+        *pucOutSize = 2;
+        break;
+    }
+    *pucCode = 0;
+    switch (type) {
+        case eModbusPacketVariableLen:
+        case eModbusPacketFull:
+            *pucOutAmount = pxFrame->ucLengthCode >> (*pucOutSize - 1);
+            return pxFrame->pucData;
+        case eModbusPacketBase:
+            *pucOutAmount = 1;
+            return (uint8_t *)&pxFrame->usRegValueCount;
+        case eModbusPacketCode:
+            *pucCode = pxFrame->ucLengthCode;
+        default:
+        break;
+    }    
+    return libNULL;
+}
+
+
 uint8_t modbus_init(modbus_t *, const modbus_config_t *) __attribute__ ((alias ("bModbusInit")));
 void modbus_work(modbus_t *) __attribute__ ((alias ("vModbusWork")));
 uint8_t modbus_server_link_endpoints(modbus_t *, const modbus_endpoint_t *) __attribute__ ((alias ("bModbusServerLinkEndpoints")));
 uint32_t modbus_request(modbus_t *, modbus_frame_t *, modbus_cb_t, void *) __attribute__ ((alias ("ulModbusRequest")));
 uint8_t modbus_cancel_request(modbus_t *, uint32_t) __attribute__ ((alias ("bModbusCancelRequest")));
+uint8_t modbus_busy(modbus_t *) __attribute__ ((alias ("bModbusBusy")));
+uint8_t *modbus_frame_data(modbus_frame_t *, uint8_t *, uint8_t *, uint8_t *) __attribute__ ((alias ("pucModbusResponseFrameData")));

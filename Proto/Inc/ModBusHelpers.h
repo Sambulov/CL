@@ -157,8 +157,6 @@ static inline void vModbusInitFrameError(ModbusFrame_t *pxOutFrame, uint8_t ucDe
     pxOutFrame->ucLengthCode = eErr;
 }
 
-
-
 //typedef uint8_t (*ReadDiscreteHandler_t)(uint16_t usAddr);
 //typedef uint16_t (*ReadRegisterHandler_t)(uint16_t usAddr);
 //typedef void (*WriteRegisterHandler_t)(uint16_t usAddr, uint16_t usValue);
@@ -185,7 +183,7 @@ static inline void modbus_init_frame_write_coils(modbus_frame_t *, uint8_t, uint
     __attribute__ ((alias ("vModbusInitFrameWriteCoils")));
 static inline void modbus_init_frame_write_holdings(modbus_frame_t *, uint8_t, uint16_t, uint16_t, uint16_t *)\
     __attribute__ ((alias ("vModbusInitFrameWriteHoldings")));
-static inline void modbus_init_frame_error(ModbusFrame_t *, uint8_t, uint8_t, ModbusErrorCode_t)
+static inline void modbus_init_frame_error(modbus_frame_t *, uint8_t, uint8_t, modbus_error_code_t)
     __attribute__ ((alias ("vModbusInitFrameError")));
 
 #ifdef __cplusplus

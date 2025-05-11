@@ -191,6 +191,24 @@ uint32_t ulModbusRequest(Modbus_t *pxMb, ModbusFrame_t *pxFrame, ModbusCb_t pfCa
 */
 uint8_t bModbusCancelRequest(Modbus_t *pxMb, uint32_t ulRequestId);
 
+/*!
+	@brief Check if modbus busy
+	@param[in] pxMb        Modbus descriptor
+	@return !0 if busy
+*/
+uint8_t bModbusBusy(Modbus_t *pxMb);
+
+/*!
+	@brief Extruct frame data
+	@param[in] pxFrame			Frame buffer
+	@param[out] pucCode         Returned code or error
+	@param[out] pucOutAmount    Registers amount
+	@param[out] pucOutSize      Data size (1 or 2 bytes)
+	@return pointer to buffer if data present
+*/
+uint8_t *pucModbusResponseFrameData(ModbusFrame_t *pxFrame, uint8_t *pucCode, uint8_t *pucOutAmount, uint8_t *pucOutSize);
+
+
 static inline uint8_t bModbusIsErrorFrame(ModbusFrame_t *pxFrame) {
     return ((pxFrame == libNULL) || ((pxFrame->ucFunc & MODBUS_ERROR_FLAG) != 0));
 }
@@ -217,6 +235,8 @@ void modbus_work(modbus_t *);
 uint8_t modbus_server_link_endpoints(modbus_t *, const modbus_endpoint_t *);
 uint32_t modbus_request(modbus_t *, modbus_frame_t *, modbus_cb_t, void *);
 uint8_t modbus_cancel_request(modbus_t *, uint32_t);
+uint8_t modbus_busy(modbus_t *);
+uint8_t *modbus_frame_data(modbus_frame_t *, uint8_t *, uint8_t *, uint8_t *);
 
 static inline uint8_t modbus_is_error_frame(modbus_frame_t *)  __attribute__ ((alias ("bModbusIsErrorFrame")));
 
