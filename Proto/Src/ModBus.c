@@ -536,7 +536,11 @@ uint8_t *pucModbusResponseFrameData(ModbusFrame_t *pxFrame, uint8_t *pucCode, ui
     switch (type) {
         case eModbusPacketVariableLen:
         case eModbusPacketFull:
-            *pucOutAmount = pxFrame->ucLengthCode >> (*pucOutSize - 1);
+            if(*pucOutSize == 2) {
+                for(uint32_t i = 0; i < pxFrame->ucLengthCode; i += 2)
+                    *(uint16_t *)&pxFrame->pucData[i] = swap_bytes(*(uint16_t *)&pxFrame->pucData[i]);
+                *pucOutAmount = pxFrame->ucLengthCode >> 1;
+            }
             return pxFrame->pucData;
         case eModbusPacketBase:
             *pucOutAmount = 1;
