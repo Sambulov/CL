@@ -26,7 +26,7 @@ typedef struct {
     uint8_t bProcessing      :1,
             bTransmitPhase   :1,
             bRequestComplete :1,
-            bTimeout         :1,
+            //bTimeout         :1,
             bBlockComplete   :1,
             bAsciiIncomplete :1,
             bAsciiMode       :1,
@@ -97,7 +97,7 @@ static ModbusPacketType_t _eModbusFuncToPacketType(uint8_t ucFunc, uint8_t bIsRe
 static uint8_t _bModbusServerSetHandler(_prModbus_t *pxMb) {
 	pxMb->pfOnComplete = &_eModbusDummyHandler;
     const ModbusEndpoint_t *currentEP = pxMb->pxEndpoints;
-    while ((currentEP != libNULL) && (currentEP->ucAddress != pxMb->xFrame.ucAddr))
+    while ((currentEP != libNULL) && (currentEP->ucAddress != (pxMb->xFrame.ucAddr & currentEP->ucAddressMask)))
         currentEP = currentEP->pxNext;
     if (currentEP == libNULL) return cl_false;
     const ModbusHandler_t *hdesc = libNULL;
@@ -107,7 +107,10 @@ static uint8_t _bModbusServerSetHandler(_prModbus_t *pxMb) {
             break;
         }
     }
-    if (hdesc != libNULL) pxMb->pfOnComplete = hdesc->pfOnRequest;
+    if (hdesc != libNULL) {
+        pxMb->pfOnComplete = hdesc->pfOnRequest;
+        pxMb->pxCbContext = hdesc->pxContext;
+    }
     return cl_true;
 }
 
@@ -276,13 +279,13 @@ static int8_t _RxFrame(_prModbus_t *pxMb, uint8_t bRequest) {
             /* fall through */
         case 2 /* Rx addr */:
             if (lDataRead(pxMb, tmpBuffer, 1) <= 0) return ((pxMb->bAsciiMode)? 2: 1);
-            pxMb->bSkeepFrame = (*tmpBuffer != frame->ucAddr);
+            //pxMb->bSkeepFrame = (*tmpBuffer != frame->ucAddr);
             frame->ucAddr = *tmpBuffer;
             pxMb->ucCrc = usCrcCalc(tmpBuffer, 1, libNULL);
             /* fall through */
         case 3 /* Rx func */:
             if (lDataRead(pxMb, tmpBuffer, 1) <= 0) return 3;
-            pxMb->bSkeepFrame = ((*tmpBuffer & ~MODBUS_ERROR_FLAG) != frame->ucFunc);
+            //pxMb->bSkeepFrame = ((*tmpBuffer & ~MODBUS_ERROR_FLAG) != frame->ucFunc);
             frame->ucFunc = *tmpBuffer;
             pxMb->ucCrc = usCrcCalc(tmpBuffer, 1, &pxMb->ucCrc);
             pxMb->eRxType = _eModbusFuncToPacketType(frame->ucFunc, bRequest);
@@ -358,16 +361,21 @@ static int8_t _RxFrame(_prModbus_t *pxMb, uint8_t bRequest) {
 static void _vModbusServerWork(_prModbus_t *pxMb) {
     uint16_t now = pxMb->pxIface->pfTimer(pxMb->pxTimerContext);
     if (!pxMb->bTransmitPhase) { /* Awaite request frame */
+        if(pxMb->bRequestComplete) {
+            if (((uint16_t)(now - pxMb->usTimer) < pxMb->tx_timeout)) return;
+            pxMb->bRequestComplete = 0;
+        }
         if(pxMb->cXferState <= 1) pxMb->usTimer = now;
         pxMb->cXferState = _RxFrame(pxMb, cl_true);
         if ((uint16_t)(now - pxMb->usTimer) >= pxMb->rx_timeout) pxMb->cXferState = 0;
         if (pxMb->cXferState == 0) { /* Frame received */
             pxMb->usTimer = now;
             if(_bModbusServerSetHandler(pxMb)) {
+                pxMb->bRequestComplete = 1;
                 pxMb->pfOnComplete((Modbus_t *)pxMb, pxMb->pxCbContext, &pxMb->xFrame);
-                pxMb->eTxType = eModbusPacketNone;
-                if (pxMb->xFrame.ucAddr != 0) pxMb->eTxType = _eModbusFuncToPacketType(pxMb->xFrame.ucFunc, 0);
-                if (pxMb->eTxType != eModbusPacketNone) pxMb->bTransmitPhase = 1;
+                //pxMb->eTxType = eModbusPacketNone;
+                //if (pxMb->xFrame.ucAddr != 0) pxMb->eTxType = _eModbusFuncToPacketType(pxMb->xFrame.ucFunc, 0);
+                //if (pxMb->eTxType != eModbusPacketNone) pxMb->bTransmitPhase = 1;
             }
         }
     }
@@ -387,21 +395,20 @@ static void _vModbusClientWork(_prModbus_t *pxMb) {
             pxMb->bRequestComplete = (pxMb->eRxType == eModbusPacketNone) || (pxMb->cXferState < 0);
             pxMb->usTimer = now;
         }
-        if((uint16_t)(now - pxMb->usTimer) >= pxMb->tx_timeout) pxMb->bTimeout = 1;
     }
     else { /* Awaite response */
         pxMb->cXferState = _RxFrame(pxMb, cl_false);
         pxMb->bRequestComplete = (pxMb->cXferState <= 0) && !(pxMb->bSkeepFrame);
-        if ((uint16_t)(now - pxMb->usTimer) >= pxMb->rx_timeout) pxMb->bTimeout = 1;
     }
-    if(pxMb->bRequestComplete || pxMb->bTimeout) {
+    uint8_t bTimeout = ((uint16_t)(now - pxMb->usTimer) >= pxMb->tx_timeout);
+    if(pxMb->bRequestComplete || bTimeout) {
         if (pxMb->pfOnComplete != libNULL) {
             ModbusErrorCode_t err = 0;
             if(pxMb->bTransmitPhase) {
-                if(pxMb->bTimeout || (pxMb->cXferState < 0)) err = ModbusGatewayPathUnavailable;
+                if(bTimeout || (pxMb->cXferState < 0)) err = ModbusGatewayPathUnavailable;
             }
             else { /* receive failed */
-                if(pxMb->bTimeout || (pxMb->cXferState < 0)) err = ModbusGatewayTargetDeviceFailedtoRespond;
+                if(bTimeout || (pxMb->cXferState < 0)) err = ModbusGatewayTargetDeviceFailedtoRespond;
             }
             if(err) {
                 pxMb->xFrame.ucFunc |= MODBUS_ERROR_FLAG;
@@ -429,7 +436,6 @@ static void _vModbusReset(_prModbus_t *pxMb) {
     pxMb->bTransmitPhase = 0;
     pxMb->cXferState = 0;
     pxMb->bRequestComplete = 0;
-    pxMb->bTimeout = 0;
 }
 
 uint8_t bModbusServerLinkEndpoints(Modbus_t *pxMb, const ModbusEndpoint_t *pxMbEp) {
@@ -498,7 +504,29 @@ uint32_t ulModbusRequest(Modbus_t *pxMb, ModbusFrame_t *pxFrame, ModbusCb_t pfCa
     mb->cXferState = 0;
     mb->bTransmitPhase = 1;
     mb->bProcessing = 1;
-    mb->bTimeout = 0;
+    mb->bRequestComplete = 0;
+    mb->req_id++;
+    if(!mb->req_id) mb->req_id = 1;
+    return mb->req_id;
+}
+
+uint32_t ulModbusResponse(Modbus_t *pxMb, ModbusFrame_t *pxFrame) {
+    _prModbus_t *mb = (_prModbus_t *)pxMb;
+	if ((pxMb == libNULL) || (mb->pxEndpoints == libNULL) || /* not server mode */
+        (pxFrame == libNULL) || !mb->bRequestComplete) return 0;
+    mb->eTxType = _eModbusFuncToPacketType(pxFrame->ucFunc, cl_false);
+    mb->eRxType = eModbusPacketNone;
+    if((mb->eTxType == eModbusPacketNone) || ((mb->eTxType & eModbusPacketVariableLen) && 
+      ((pxFrame->ucLengthCode == 0) || (pxFrame->pucData == libNULL)))) 
+        return 0;
+    mb->xFrame = *pxFrame;
+    if(mb->eTxType & eModbusPacketVariableLen) {
+        mb->xFrame.pucData = mb->pucPayLoadBuffer;
+        mem_cpy(mb->xFrame.pucData, pxFrame->pucData, pxFrame->ucLengthCode);
+    }
+    mb->cXferState = 0;
+    mb->bTransmitPhase = 1;
+    mb->bProcessing = 1;
     mb->bRequestComplete = 0;
     mb->req_id++;
     if(!mb->req_id) mb->req_id = 1;
@@ -516,7 +544,6 @@ uint8_t bModbusBusy(Modbus_t *pxMb) {
     _prModbus_t *mb = (_prModbus_t *)pxMb;
 	return (pxMb != libNULL) && mb->bProcessing;
 }
-
 
 uint8_t *pucModbusResponseFrameData(ModbusFrame_t *pxFrame, uint8_t *pucCode, uint8_t *pucOutAmount, uint8_t *pucOutSize) {
 	*pucOutAmount = 0;
@@ -553,11 +580,11 @@ uint8_t *pucModbusResponseFrameData(ModbusFrame_t *pxFrame, uint8_t *pucCode, ui
     return libNULL;
 }
 
-
 uint8_t modbus_init(modbus_t *, const modbus_config_t *) __attribute__ ((alias ("bModbusInit")));
 void modbus_work(modbus_t *) __attribute__ ((alias ("vModbusWork")));
 uint8_t modbus_server_link_endpoints(modbus_t *, const modbus_endpoint_t *) __attribute__ ((alias ("bModbusServerLinkEndpoints")));
 uint32_t modbus_request(modbus_t *, modbus_frame_t *, modbus_cb_t, void *) __attribute__ ((alias ("ulModbusRequest")));
+uint32_t modbus_response(modbus_t *, modbus_frame_t *) __attribute__ ((alias ("ulModbusResponse")));
 uint8_t modbus_cancel_request(modbus_t *, uint32_t) __attribute__ ((alias ("bModbusCancelRequest")));
 uint8_t modbus_busy(modbus_t *) __attribute__ ((alias ("bModbusBusy")));
 uint8_t *modbus_frame_data(modbus_frame_t *, uint8_t *, uint8_t *, uint8_t *) __attribute__ ((alias ("pucModbusResponseFrameData")));

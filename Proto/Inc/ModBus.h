@@ -125,6 +125,7 @@ typedef struct MBEP_t ModbusEndpoint_t;
 
 struct MBEP_t {
 	uint8_t ucAddress;                         /* Address the modbus server to be responsible to. 0 - broadcast */
+	uint8_t ucAddressMask;                     /* Address compared as ucReqAddr & ucAddressMask == ucAddress */
 	const ModbusHandler_t *const *paxHandlers; /* Modbus request handlers */
 	const ModbusEndpoint_t *pxNext;            /* Next endpoint (additional server addresses) */
 };
@@ -179,17 +180,25 @@ uint8_t bModbusServerLinkEndpoints(Modbus_t *pxMb, const ModbusEndpoint_t *pxMbE
 	@param[in] pxFrame     Modbus frame to request. Could be destroyed after call.
 	@param[in] pfCallback  On request complete callback.
 	@param[in] pxCbContext Callback user context.
-	@return request ID if ok, 0 if fault
+	@return transfer ID if ok, 0 if fault
 */
 uint32_t ulModbusRequest(Modbus_t *pxMb, ModbusFrame_t *pxFrame, ModbusCb_t pfCallback, void *pxCbContext);
 
 /*!
-	@brief Modbus client cancel request
+	@brief Modbus server send response
 	@param[in] pxMb        Modbus descriptor
-	@param[in] ulRequestId Modbus request id.
+	@param[in] pxFrame     Modbus frame to request. Could be destroyed after call.
+	@return transfer ID if ok, 0 if fault
+*/
+uint32_t ulModbusResponse(Modbus_t *pxMb, ModbusFrame_t *pxFrame);
+
+/*!
+	@brief Modbus client cancel request
+	@param[in] pxMb         Modbus descriptor
+	@param[in] ulTransferId Modbus tx frame id.
 	@return !0 if canceled
 */
-uint8_t bModbusCancelRequest(Modbus_t *pxMb, uint32_t ulRequestId);
+uint8_t bModbusCancelRequest(Modbus_t *pxMb, uint32_t ulTransferId);
 
 /*!
 	@brief Check if modbus busy
@@ -233,6 +242,7 @@ typedef ModbusIfaceTimer_t modbus_iface_timer_t;
 uint8_t modbus_init(modbus_t *, const modbus_config_t *);
 void modbus_work(modbus_t *);
 uint8_t modbus_server_link_endpoints(modbus_t *, const modbus_endpoint_t *);
+uint32_t modbus_response(modbus_t *, modbus_frame_t *);
 uint32_t modbus_request(modbus_t *, modbus_frame_t *, modbus_cb_t, void *);
 uint8_t modbus_cancel_request(modbus_t *, uint32_t);
 uint8_t modbus_busy(modbus_t *);
