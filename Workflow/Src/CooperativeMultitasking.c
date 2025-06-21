@@ -20,6 +20,7 @@ static LinkedList_t xTasksCancel = libNULL;
 void vCoroutineAdd(Coroutine_t *pcCoRBuffer, CoroutineHandler_t pfHandler, void* pxArg) {
   CoroutinePrivate_t *worker = (CoroutinePrivate_t *)pcCoRBuffer;
   if((worker != libNULL) && (pfHandler != libNULL)) {
+    mem_set(pcCoRBuffer, 0 , sizeof(CoroutinePrivate_t));
     worker->handler = pfHandler;
     worker->pxArg = pxArg;
     vLinkedListInsert(&xTasksRun, LinkedListItem(worker), libNULL);
