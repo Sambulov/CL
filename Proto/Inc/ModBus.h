@@ -212,7 +212,7 @@ uint8_t bModbusBusy(Modbus_t *pxMb);
 	@param[in] pxFrame			Frame buffer
 	@param[out] pucCode         Returned code or error
 	@param[out] pucOutAmount    Registers amount
-	@param[out] pucOutSize      Data size (1 or 2 bytes)
+	@param[out] pucOutSize      Data entity size (1 or 2 bytes)
 	@return pointer to buffer if data present
 */
 uint8_t *pucModbusResponseFrameData(ModbusFrame_t *pxFrame, uint8_t *pucCode, uint8_t *pucOutAmount, uint8_t *pucOutSize);

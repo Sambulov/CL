@@ -38,6 +38,9 @@ typedef __PTRDIFF_TYPE__       ptrdiff_t;
 #define __weak                 __attribute__((weak))
 #define __packed               __attribute__((__packed__))
 
+typedef void** cl_tuple_t;
+#define cl_tuple_make(...) ((void *[]){__VA_ARGS__})
+#define cl_tuple_get(tuple, index, type) ((type)(((void **)tuple)[index]))
 
 #define va_start(v,l)          __builtin_va_start(v,l)
 #define va_end(v)              __builtin_va_end(v)
@@ -64,6 +67,8 @@ typedef __PTRDIFF_TYPE__       ptrdiff_t;
 #include "CircularBuffer.h"
 #include "Fifo.h"
 #include "Stream.h"
+
+#include "Printf.h"
 
 #include "ModBus.h"
 #include "ModBusHelpers.h"
