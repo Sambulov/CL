@@ -51,27 +51,27 @@ typedef void** cl_tuple_t;
 #define LIB_ASSERRT_STRUCTURE_PROP(private_type, public_type, prop, def_file) \
     _Static_assert((offsetof(private_type, prop) == offsetof(public_type, prop)), "In "def_file" "#public_type" property "#prop" order doesn't match");
 
-#include "Macros.h"
-#include "ClMath.h"
-#include "LinkedList.h"
-#include "CooperativeMultitasking.h"
-#include "MachineState.h"
-#include "SimpleCircularBuffer.h"
-#include "Mem.h"
-#include "MedianFilter.h"
-#include "Crc.h"
-#include "BitOp.h"
-#include "StringConverter.h"
-#include "CharsetEncoding.h"
-#include "Str.h"
-#include "CircularBuffer.h"
-#include "Fifo.h"
-#include "Stream.h"
+#include "ClMacros.h"
+#include "Math/Math.h"
+#include "DataStructures/LinkedList.h"
+#include "Workflow/CooperativeMultitasking.h"
+#include "Workflow/MachineState.h"
+#include "DataStructures/SimpleCircularBuffer.h"
+#include "DataStructures/Mem.h"
+#include "DataStructures/MedianFilter.h"
+#include "Crypto/Crc.h"
+#include "Binary/BitOp.h"
+#include "Converters/StringConverter.h"
+#include "Converters/CharsetEncoding.h"
+#include "DataStructures/Str.h"
+#include "DataStructures/CircularBuffer.h"
+#include "DataStructures/Fifo.h"
+#include "DataStructures/Stream.h"
 
-#include "Printf.h"
+#include "DataStructures/Printf.h"
 
-#include "ModBus.h"
-#include "ModBusHelpers.h"
+#include "Proto/ModBus.h"
+#include "Proto/ModBusHelpers.h"
 
 #ifdef __cplusplus
 }
