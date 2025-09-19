@@ -166,6 +166,30 @@ static inline void vStreamFlushO(Stream_t *pxStream) {
 }
 
 /*!
+	@brief Initialise stream
+	@param[in] pxStream   Pinter to stream descriptor
+	@param[in] pxIFifo    Pinter to input fifo descriptor
+	@param[in] pxOFifo    Pinter to output fifo descriptor
+*/
+static inline void vStreamInit(Stream_t *pxStream, Fifo_t *pxIFifo, Fifo_t *pxOFifo) {
+	if (pxStream != libNULL) {
+		pxStream->pxIFifo = pxIFifo;
+		pxStream->pxOFifo = pxOFifo;
+	}
+}
+
+/*!
+	@brief Initialise loopback stream
+	@param[in] pxStream   Pinter to stream descriptor
+	@param[in] pxFifo    Pinter to input/output fifo descriptor
+*/
+static inline void vStreamInitLoopBack(Stream_t *pxStream, Fifo_t *pxFifo) {
+	if (pxStream != libNULL) {
+		pxStream->pxIFifo = pxStream->pxOFifo = pxFifo;
+	}
+}
+
+/*!
   Snake notation
 */
 
@@ -184,6 +208,8 @@ static inline int32_t stream_peek(stream_t *, uint8_t *, uint32_t) __attribute__
 static inline void stream_flush_io(stream_t *) __attribute__ ((alias ("vStreamFlushIO")));
 static inline void stream_flush_i(stream_t *) __attribute__ ((alias ("vStreamFlushI")));
 static inline void stream_flush_o(stream_t *) __attribute__ ((alias ("vStreamFlushO")));
+static inline void stream_init(stream_t *, fifo_t *, fifo_t *) __attribute__ ((alias ("vStreamInit")));
+static inline void stream_init_loopback(stream_t *, fifo_t *) __attribute__ ((alias ("vStreamInitLoopBack")));
 
 #ifdef __cplusplus
 }

@@ -5,7 +5,7 @@
 extern "C" {
 #endif
 
-#define SWAP_BYTES(word)      (uint16_t)((uint16_t)(word >> 8) | (uint16_t)(word << 8))
+#define SWAP_BYTES(word)      (uint16_t)(((uint16_t)(word) >> 8) | ((uint16_t)(word) << 8))
 
 uint32_t ulBitReflect(uint32_t ulVal, uint8_t ucBits);
 
