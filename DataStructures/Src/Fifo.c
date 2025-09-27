@@ -26,7 +26,7 @@ static uint8_t _bSwitchBuffer(_Fifo_t *pxDesc) {
 }
 
 uint8_t bFifoIsValid(Fifo_t *pxFifo) {
-	return pxFifo != libNULL && ((_Fifo_t *)pxFifo)->validation == FIFO_VALIDATION_MARKER;
+	return (pxFifo != libNULL) && (((_Fifo_t *)pxFifo)->validation == FIFO_VALIDATION_MARKER);
 }
 
 static int32_t _lFifoAvailableTo(_Fifo_t *pxDesc, uint8_t bReadData) {
@@ -64,6 +64,8 @@ uint8_t bFifoInit(Fifo_t *pxFifo, uint8_t *pucBuffer, uint16_t uSize, uint8_t is
 	}
 	pxDescriptor->buffer[0] = pxDescriptor->pxIface->pfBufferInit(pucBuffer, uSize);
 	if (pxDescriptor->buffer[0] == libNULL) {
+		if (isDoubleBufferization) 
+		    pxDescriptor->pxIface->pfBufferFree(pxDescriptor->buffer[1]);
 		return cl_false;
 	}
 	return cl_true;
@@ -146,10 +148,10 @@ static inline int32_t _lFifoWrite(Fifo_t *pxDescriptor, const uint8_t *pucData, 
 		if (desc->isDouble) {
 			wrBufIndex = !(desc->rdBufIndex);
 		}
-		int32_t writed = pxDescriptor->pxIface->pfBufferWrte(desc->buffer[wrBufIndex], pucData, uCount, bRepeatMode, bAllOrNothing, bAsString);
+		int32_t writed = pxDescriptor->pxIface->pfBufferWrite(desc->buffer[wrBufIndex], pucData, uCount, bRepeatMode, bAllOrNothing, bAsString);
 		if (writed >= 0 && _bSwitchBuffer(desc)) {
 			if ((writed == 0) || (((!bAsString)&&(writed < uCount)) || ((bAsString)&&(pucData[writed - 1] != '\0')))) {
-				int32_t res = pxDescriptor->pxIface->pfBufferWrte(desc->buffer[!desc->rdBufIndex], pucData + writed, uCount - writed, bRepeatMode, bAllOrNothing, bAsString);
+				int32_t res = pxDescriptor->pxIface->pfBufferWrite(desc->buffer[!desc->rdBufIndex], pucData + writed, uCount - writed, bRepeatMode, bAllOrNothing, bAsString);
 				if (res > 0) {
 					writed += res;
 				}
@@ -184,7 +186,7 @@ int32_t lFifoWriteString(Fifo_t *pxDescriptor, const uint8_t *pcString) {
 	return _lFifoWrite(pxDescriptor, (uint8_t *)pcString, -1, 0, 0, 1);
 }
 
-int32_t lFifoWriteStringAll(Fifo_t *pxDescriptor, uint8_t *pcString) {
+int32_t lFifoWriteStringAll(Fifo_t *pxDescriptor, const uint8_t *pcString) {
 	return _lFifoWrite(pxDescriptor, (uint8_t *)pcString, -1, 0, 1, 1);
 }
 

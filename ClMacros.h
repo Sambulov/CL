@@ -4,6 +4,7 @@
 #define CL_SIZE_ALIGN2(x)         (((x) + (x & 0x01)))
 #define CL_SIZE_ALIGN4(x)         ((SIZE_ALIGN2(x) + (SIZE_ALIGN2(x) & 0x02)))
 
+#define CL_BIT_MASK(start, end)   ((0xFFFFFFFFUL << (start)) & (0xFFFFFFFFUL >> (31U - (uint32_t)(end))))
 
 #define CL_REG_MODIFY(reg, mask, bits)         (reg = (((reg) & ~(mask)) | ((bits) & (mask))))
 #define CL_REG_CLEAR(reg, mask)                (reg = ((reg) & ~(mask)))

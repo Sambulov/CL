@@ -76,7 +76,7 @@ typedef struct {
 	BufferBase_t pfBufferFree;
 	BufferBase_t pfBufferFlush;
 	BufferRead_t pfBufferRead;
-	BufferWrite_t pfBufferWrte;
+	BufferWrite_t pfBufferWrite;
 	uint8_t (*pfIsInIsr)(void); /* check if in interrupt routine; return !0 if call from ISR */
 } FifoIface_t;
 
@@ -176,7 +176,7 @@ int32_t lFifoWriteString(Fifo_t *xpFifo, const uint8_t *pcString);
 	@param[in] uCount			User data length
 	@return Writed bytes count or -1 if data doesn't fits in stream buffer
 */
-int32_t lFifoWriteStringAll(Fifo_t *xpFifo, uint8_t *pcString);
+int32_t lFifoWriteStringAll(Fifo_t *xpFifo, const uint8_t *pcString);
 
 /*!
 	@brief Write byte to fifo buffer

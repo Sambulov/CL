@@ -17,11 +17,10 @@ typedef struct {
 	uint16_t headBackup;
 	uint16_t size;
 	uint16_t validation;
-	uint8_t buffer[4];
+	uint8_t buffer[];
 }_CircularBuffer_t;
 
-//LIB_ASSERRT_STRUCTURE_CAST(_CircularBuffer_t, CircularBuffer_t, CIRCULAR_BUFFER_DESCRIPTOR_SIZE, "CircularBuffer.h");
-_Static_assert(sizeof(_CircularBuffer_t) == (sizeof(CircularBuffer_t) + 4), "In ""\"CircularBuffer.h\""" data structure size of ""CircularBuffer_t"" doesn't match, check ""CIRCULAR_BUFFER_DESCRIPTOR_SIZE");
+LIB_ASSERRT_STRUCTURE_CAST(_CircularBuffer_t, CircularBuffer_t, CIRCULAR_BUFFER_DESCRIPTOR_SIZE, "CircularBuffer.h");
 
 static _CircularBuffer_t *_pxCircularBufferCastDescriptor(CircularBuffer_t *pxDescriptor) {
 	uint32_t ptr_align = (uint32_t)pxDescriptor;
