@@ -56,6 +56,7 @@ typedef void** cl_tuple_t;
 #include "DataStructures/LinkedList.h"
 #include "Workflow/CooperativeMultitasking.h"
 #include "Workflow/MachineState.h"
+#include "Workflow/Event.h"
 #include "DataStructures/SimpleCircularBuffer.h"
 #include "DataStructures/Mem.h"
 #include "DataStructures/MedianFilter.h"
