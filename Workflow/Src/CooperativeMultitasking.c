@@ -15,7 +15,12 @@ typedef struct {
 
 static LinkedList_t xTasksRun = libNULL;
 static LinkedList_t xTasksCancel = libNULL;
+static Coroutine_t *pxCurrent = libNULL;
 //static LinkedList_t xTasksSuspend = libNULL;
+
+Coroutine_t *pxCoroutineCurrent() {
+  return pxCurrent;
+}
 
 void vCoroutineAdd(Coroutine_t *pcCoRBuffer, CoroutineHandler_t pfHandler, void* pxArg) {
   CoroutinePrivate_t *worker = (CoroutinePrivate_t *)pcCoRBuffer;
@@ -52,6 +57,7 @@ static void _vCoroutineRun(LinkedListItem_t *desc, void *pxArg) {
   CoroutinePrivate_t *wrk = LinkedListGetObject(CoroutinePrivate_t, desc);
   SchedulerArg_t *arg = (SchedulerArg_t *)pxArg;
   if(wrk->handler != libNULL) {
+    pxCurrent = (Coroutine_t *)wrk;
     if(wrk->handler((Coroutine_t *)wrk, arg->bCancel, wrk->pxArg)) {
       vLinkedListUnlink(desc);
     }
@@ -85,6 +91,7 @@ CoroutineState_t eCoroutineState(Coroutine_t *pxCoR) {
 
 void coroutine_add(coroutine_t *cor_buf, coroutine_handler_t handler, void *arg)
                                                             __attribute__ ((alias ("vCoroutineAdd")));
+coroutine_t *coroutine_current()                            __attribute__ ((alias ("pxCoroutineCurrent")));
 void coroutine_set_context(coroutine_t *cor, void* arg)     __attribute__ ((alias ("vCoroutineSetContext")));
 void coroutine_cancel(coroutine_t *cor)                     __attribute__ ((alias ("vCoroutineCancel")));
 void coroutine_terminate(coroutine_t *cor)                  __attribute__ ((alias ("vCoroutineTerminate")));

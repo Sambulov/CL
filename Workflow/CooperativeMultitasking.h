@@ -21,6 +21,7 @@ typedef enum {
 typedef uint8_t (*CoroutineHandler_t)(Coroutine_t *pxThis, uint8_t bCancel, void *pxArg);
 
 void vCoroutineAdd(Coroutine_t *pcCoRBuffer, CoroutineHandler_t pfHandler, void *pxArg);
+Coroutine_t *pxCoroutineCurrent();
 void vCoroutineSetContext(Coroutine_t *pxCoR, void* pxArg);
 void vCoroutineCancel(Coroutine_t *pxCoR);
 void vCoroutineTerminate(Coroutine_t *pxCoR);
@@ -37,6 +38,7 @@ typedef CoroutineHandler_t coroutine_handler_t;
 typedef CoroutineState_t coroutine_state_t;
 
 void coroutine_add(coroutine_t *cor_buf, coroutine_handler_t handler, void *arg);
+coroutine_t *coroutine_current();
 void coroutine_set_context(coroutine_t *cor, void* arg);
 void coroutine_cancel(coroutine_t *cor);
 void coroutine_terminate(coroutine_t *cor);
