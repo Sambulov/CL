@@ -16,8 +16,8 @@
 #define CL_REG_DIF(reg, mask, val)             (((reg) ^ (val)) & (mask))
 #define CL_REG_CHECK(reg, mask, bits)          (CL_REG_DIF(reg, mask, bits) == 0)
 
-#define CL_MIN(A, B)                               ((A < B)? (A): (B))
-#define CL_MAX(A, B)                               ((A > B)? (A): (B))
+#define CL_MIN(A, B)                               (((A) < (B))? (A): (B))
+#define CL_MAX(A, B)                               (((A) > (B))? (A): (B))
 
 #define CL_ABS(A)                                  (((A) >= 0)? (A) : -(A))
 
