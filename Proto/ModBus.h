@@ -101,7 +101,7 @@ typedef struct {
 	uint8_t ucFunc;           /* Function number */
 	uint16_t usRegAddr;       /* Register address */
 	uint16_t usRegValueCount; /* Register value or amount */
-	uint8_t ucLengthCode;     /* Data next or function code response or error */
+	uint8_t ucLengthCode;     /* Data length next or function code response or error */
 	uint8_t ucBufferSize;     /* For server response capability, payload buffer available */
 	uint8_t *pucData;         /* Frame payload */
 } ModbusFrame_t;
@@ -149,7 +149,8 @@ typedef struct {
 	uint8_t ucPayLoadBufferSize;               /* Modbus payload buffer size */
 	uint16_t rx_timeout;                       /* Receive timeout in interface timer time units */
 	uint16_t tx_timeout;                       /* Transmit timeout in interface timer time units */
-	uint8_t bAsciiMode : 1;                    /* Modbus mode: 0 - RTU, 1 - ASCII */
+	uint8_t bAsciiMode : 1,                    /* Modbus mode: 0 - RTU, 1 - ASCII */
+	        bPduMode   : 1;                    /* Modbus RTU mode: 0 - ADU, 1 - PDU */
 } ModbusConfig_t;
 
 /*!

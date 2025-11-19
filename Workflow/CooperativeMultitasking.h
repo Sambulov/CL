@@ -23,6 +23,7 @@ typedef uint8_t (*CoroutineHandler_t)(Coroutine_t *pxThis, uint8_t bCancel, void
 void vCoroutineAdd(Coroutine_t *pcCoRBuffer, CoroutineHandler_t pfHandler, void *pxArg);
 Coroutine_t *pxCoroutineCurrent();
 void vCoroutineSetContext(Coroutine_t *pxCoR, void* pxArg);
+void vCoroutineSetHandler(Coroutine_t *pxCoR, CoroutineHandler_t pfHandler);
 void vCoroutineCancel(Coroutine_t *pxCoR);
 void vCoroutineTerminate(Coroutine_t *pxCoR);
 CoroutineState_t eCoroutineState(Coroutine_t *pxCoR);
@@ -40,6 +41,7 @@ typedef CoroutineState_t coroutine_state_t;
 void coroutine_add(coroutine_t *cor_buf, coroutine_handler_t handler, void *arg);
 coroutine_t *coroutine_current();
 void coroutine_set_context(coroutine_t *cor, void* arg);
+void coroutine_set_handler(coroutine_t *cor, coroutine_handler_t handler);
 void coroutine_cancel(coroutine_t *cor);
 void coroutine_terminate(coroutine_t *cor);
 coroutine_state_t coroutine_state(Coroutine_t *cor);

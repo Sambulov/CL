@@ -25,8 +25,8 @@ typedef __UINT64_TYPE__        uint64_t;
 typedef __SIZE_TYPE__          size_t;
 typedef __PTRDIFF_TYPE__       ptrdiff_t;
 
-#define cl_false	           0
-#define cl_true	               !cl_false
+#define CL_FALSE 	           ((uint8_t)( 0 ))
+#define CL_TRUE	               !CL_FALSE
 #define CL_PRIVATE(size)       uint32_t __private[(size + sizeof(void *) - 1) >> 2]
 
 #define libNULL                ((void *)0)
