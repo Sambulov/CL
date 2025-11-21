@@ -10,7 +10,7 @@ LIB_ASSERRT_STRUCTURE_CAST(CoroutinePrivate_t, Coroutine_t, CO_ROUTINE_DESC_SIZE
 
 typedef struct {
   uint8_t bCancel;
-  uint32_t bLeft;
+  uint32_t ulWorkers;
 } SchedulerArg_t;
 
 static LinkedList_t xTasksRun = libNULL;
@@ -32,18 +32,30 @@ void vCoroutineAdd(Coroutine_t *pcCoRBuffer, CoroutineHandler_t pfHandler, void*
   }
 }
 
+void *pxCoroutineGetContext(Coroutine_t *pxCoR) {
+  CoroutinePrivate_t *worker = (CoroutinePrivate_t *)pxCoR;
+  if(worker != libNULL)
+    return worker->pxArg;
+  return libNULL;
+}
+
 void vCoroutineSetContext(Coroutine_t *pxCoR, void* pxArg) {
   CoroutinePrivate_t *worker = (CoroutinePrivate_t *)pxCoR;
-  if(worker != libNULL) {
+  if(worker != libNULL)
     worker->pxArg = pxArg;
-  }
+}
+
+CoroutineHandler_t pfCoroutineGetHandler(Coroutine_t *pxCoR) {
+  CoroutinePrivate_t *worker = (CoroutinePrivate_t *)pxCoR;
+  if(worker != libNULL)
+    return worker->handler;
+  return libNULL;
 }
 
 void vCoroutineSetHandler(Coroutine_t *pxCoR, CoroutineHandler_t pfHandler) {
   CoroutinePrivate_t *worker = (CoroutinePrivate_t *)pxCoR;
-  if((worker != libNULL && (pfHandler != libNULL))) {
+  if((worker != libNULL && (pfHandler != libNULL)))
     worker->handler = pfHandler;
-  }
 }
 
 void vCoroutineCancel(Coroutine_t *pxCoR) {
@@ -68,18 +80,16 @@ static void _vCoroutineRun(LinkedListItem_t *desc, void *pxArg) {
     if(wrk->handler((Coroutine_t *)wrk, arg->bCancel, wrk->pxArg)) {
       vLinkedListUnlink(desc);
     }
-    else {
-      arg->bLeft++;
-    }
+    arg->ulWorkers++;
   }
 }
 
 uint32_t ulCooperativeScheduler(uint8_t bCancelAll) {
-  SchedulerArg_t arg = {.bCancel = bCancelAll, .bLeft = 0};
+  SchedulerArg_t arg = {.bCancel = bCancelAll, .ulWorkers = 0};
   ulLinkedListDoForeach(xTasksRun, &_vCoroutineRun, (void *)&arg);
   arg.bCancel = CL_TRUE;
   ulLinkedListDoForeach(xTasksCancel, &_vCoroutineRun, (void *)&arg);
-  return arg.bLeft;
+  return arg.ulWorkers;
 }
 
 CoroutineState_t eCoroutineState(Coroutine_t *pxCoR) {
@@ -99,10 +109,13 @@ CoroutineState_t eCoroutineState(Coroutine_t *pxCoR) {
 void coroutine_add(coroutine_t *cor_buf, coroutine_handler_t handler, void *arg)
                                                             __attribute__ ((alias ("vCoroutineAdd")));
 coroutine_t *coroutine_current()                            __attribute__ ((alias ("pxCoroutineCurrent")));
+void *coroutine_get_context(coroutine_t *cor)               __attribute__ ((alias ("pxCoroutineGetContext")));
 void coroutine_set_context(coroutine_t *cor, void* arg)     __attribute__ ((alias ("vCoroutineSetContext")));
+coroutine_handler_t coroutine_get_handler(coroutine_t *cor) __attribute__ ((alias ("pfCoroutineGetHandler")));
 void coroutine_set_handler(coroutine_t *cor, coroutine_handler_t handler)
                                                             __attribute__ ((alias ("vCoroutineSetHandler")));
 void coroutine_cancel(coroutine_t *cor)                     __attribute__ ((alias ("vCoroutineCancel")));
 void coroutine_terminate(coroutine_t *cor)                  __attribute__ ((alias ("vCoroutineTerminate")));
 coroutine_state_t coroutine_state(coroutine_t *cor)         __attribute__ ((alias ("eCoroutineState")));
 uint32_t cooperative_scheduler(uint8_t cancel_all)          __attribute__ ((alias ("ulCooperativeScheduler")));
+
