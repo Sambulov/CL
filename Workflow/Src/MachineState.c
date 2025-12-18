@@ -81,10 +81,20 @@ uint8_t bFsmCoroutineInit(Coroutine_t *pxCoR, FiniteStateMachine_t *pxFsm, const
     return CL_FALSE;
 }
 
-uint8_t bFsmValid(FiniteStateMachine_t* pxFsm) {
+uint8_t bFsmValid(FiniteStateMachine_t *pxFsm) {
     _FiniteStateMachine_t *fsm = (_FiniteStateMachine_t *)pxFsm;
     return (pxFsm != libNULL) && (fsm->apxTransitions != libNULL);
 }
+
+uint8_t bFsmRun(FiniteStateMachine_t *pxFsm, Coroutine_t *pxCoR) {
+    if(bFsmValid(pxFsm) && pxCoR) {
+        vCoroutineSetContext(pxCoR, pxFsm);
+        vCoroutineSetHandler(pxCoR, &_bFsmCoroutine);
+        return CL_TRUE;
+    }
+    return CL_FALSE;
+}
+
 
 uint8_t bFsmProcess(FiniteStateMachine_t* pxFsm) {
     _FiniteStateMachine_t *fsm = (_FiniteStateMachine_t *)pxFsm;
@@ -116,6 +126,9 @@ uint8_t fsm_set_transition_log(finite_state_machine_t *fsm, fsm_transition_log_t
 #endif
 uint8_t fsm_init(finite_state_machine_t* fsm, const fsm_transition_t **transitions, void *context) 
                                                         __attribute__ ((alias ("bFsmInit")));
+uint8_t fsm_run(finite_state_machine_t *fsm, coroutine_t *cor)
+                                                        __attribute__ ((alias ("bFsmRun")));
+
 uint8_t fsm_coroutine_init(coroutine_t *cor, finite_state_machine_t* fsm, const fsm_transition_t *transitions[], void *context)
                                                         __attribute__ ((alias ("bFsmCoroutineInit")));
 
