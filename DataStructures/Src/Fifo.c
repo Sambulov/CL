@@ -182,11 +182,11 @@ int32_t lFifoFillAll(Fifo_t *pxDescriptor, uint8_t cFiller, uint16_t uCount) {
 	return _lFifoWrite(pxDescriptor, &cFiller, uCount, 1, 1, 0);
 }
 
-int32_t lFifoWriteString(Fifo_t *pxDescriptor, const uint8_t *pcString) {
+int32_t lFifoWriteString(Fifo_t *pxDescriptor, const char *pcString) {
 	return _lFifoWrite(pxDescriptor, (uint8_t *)pcString, -1, 0, 0, 1);
 }
 
-int32_t lFifoWriteStringAll(Fifo_t *pxDescriptor, const uint8_t *pcString) {
+int32_t lFifoWriteStringAll(Fifo_t *pxDescriptor, const char *pcString) {
 	return _lFifoWrite(pxDescriptor, (uint8_t *)pcString, -1, 0, 1, 1);
 }
 
@@ -250,8 +250,8 @@ int32_t fifo_write(fifo_t *, const uint8_t *, uint16_t) __attribute__ ((alias ("
 int32_t fifo_write_all(fifo_t *, const uint8_t *, uint16_t) __attribute__ ((alias ("lFifoWriteAll")));
 int32_t fifo_fill(fifo_t *, uint8_t, uint16_t) __attribute__ ((alias ("lFifoFill")));
 int32_t fifo_fill_all(fifo_t *, uint8_t, uint16_t) __attribute__ ((alias ("lFifoFillAll")));
-int32_t fifo_write_string(fifo_t *, const uint8_t *) __attribute__ ((alias ("lFifoWriteString")));
-int32_t fifo_write_string_all(fifo_t *, uint8_t *) __attribute__ ((alias ("lFifoWriteStringAll")));
+int32_t fifo_write_string(fifo_t *, const char *) __attribute__ ((alias ("lFifoWriteString")));
+int32_t fifo_write_string_all(fifo_t *, const char *) __attribute__ ((alias ("lFifoWriteStringAll")));
 uint8_t fifo_write_byte(fifo_t *, uint8_t) __attribute__ ((alias ("bFifoWriteByte")));
 int32_t fifo_read(fifo_t *, uint8_t *, uint16_t) __attribute__ ((alias ("lFifoRead")));
 int32_t fifo_peek(fifo_t *, uint8_t *, uint16_t) __attribute__ ((alias ("lFifoPeek")));

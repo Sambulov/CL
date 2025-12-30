@@ -29,7 +29,7 @@ typedef struct {
 	@param[in] xArgs            Parameters
 	@return Streamed bytes count, <0 if error
 */
-static inline int32_t lStreamVPrintf(Stream_t *pxStream, const uint8_t* pcFormat, va_list xArgs) {
+static inline int32_t lStreamVPrintf(Stream_t *pxStream, const char* pcFormat, va_list xArgs) {
     if(pxStream == libNULL) return STREAM_FAIL;
 	return lFifoVPrintf(pxStream->pxOFifo, pcFormat, xArgs);
 }
@@ -40,7 +40,7 @@ static inline int32_t lStreamVPrintf(Stream_t *pxStream, const uint8_t* pcFormat
 	@param[in] pcFormat  "{[{char}]{[%[flags][width][.precision][length]specifier]}[{char}]}"
 	\return Streamed bytes count, <0 if error
 */
-static inline int32_t lStreamPrintf(Stream_t *pxStream, const uint8_t* pcFormat, ...) {
+static inline int32_t lStreamPrintf(Stream_t *pxStream, const char* pcFormat, ...) {
 	va_list args;
 	va_start(args, pcFormat);
 	int32_t streamed = lStreamVPrintf(pxStream, pcFormat, args);
@@ -78,7 +78,7 @@ static inline int32_t lStreamWriteAll(Stream_t *pxStream, const uint8_t *pcData,
 	@param[in] pcStr      String
 	\return Streamed bytes count, <0 if error
 */
-static inline int32_t lStreamWriteString(Stream_t *pxStream, const uint8_t *pcStr) {
+static inline int32_t lStreamWriteString(Stream_t *pxStream, const char *pcStr) {
     if(pxStream == libNULL) return STREAM_FAIL;
 	return lFifoWriteString(pxStream->pxOFifo, pcStr);
 }
@@ -195,11 +195,11 @@ static inline void vStreamInitLoopBack(Stream_t *pxStream, Fifo_t *pxFifo) {
 
 typedef Stream_t stream_t;
 
-static inline int32_t stream_vprintf(stream_t *, const uint8_t*, va_list) __attribute__ ((alias ("lStreamVPrintf")));
-static inline int32_t stream_printf(stream_t *, const uint8_t*, ...) __attribute__ ((alias ("lStreamPrintf")));
+static inline int32_t stream_vprintf(stream_t *, const char*, va_list) __attribute__ ((alias ("lStreamVPrintf")));
+static inline int32_t stream_printf(stream_t *, const char*, ...) __attribute__ ((alias ("lStreamPrintf")));
 static inline int32_t stream_write(stream_t *, const uint8_t *, uint32_t) __attribute__ ((alias ("lStreamWrite")));
 static inline int32_t stream_write_all(stream_t *, const uint8_t *, uint32_t) __attribute__ ((alias ("lStreamWriteAll")));
-static inline int32_t stream_write_string(stream_t *, const uint8_t *) __attribute__ ((alias ("lStreamWriteString")));
+static inline int32_t stream_write_string(stream_t *, const char *) __attribute__ ((alias ("lStreamWriteString")));
 static inline int32_t stream_write_available(stream_t *) __attribute__ ((alias ("lStreamWriteAvailable")));
 static inline int32_t stream_read_available(stream_t *) __attribute__ ((alias ("lStreamReadAvailable")));
 static inline int32_t stream_read(stream_t *, uint8_t *, uint32_t) __attribute__ ((alias ("lStreamRead")));

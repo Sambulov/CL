@@ -167,7 +167,7 @@ int32_t lFifoFillAll(Fifo_t *xpFifo, uint8_t cFiller, uint16_t uCount);
 	@param[in] uCount			User data length
 	@return Writed bytes count
 */
-int32_t lFifoWriteString(Fifo_t *xpFifo, const uint8_t *pcString);
+int32_t lFifoWriteString(Fifo_t *xpFifo, const char *pcString);
 
 /*!
 	@brief Write data to fifo buffer till string terminator. Terminator included.
@@ -176,7 +176,7 @@ int32_t lFifoWriteString(Fifo_t *xpFifo, const uint8_t *pcString);
 	@param[in] uCount			User data length
 	@return Writed bytes count or -1 if data doesn't fits in stream buffer
 */
-int32_t lFifoWriteStringAll(Fifo_t *xpFifo, const uint8_t *pcString);
+int32_t lFifoWriteStringAll(Fifo_t *xpFifo, const char *pcString);
 
 /*!
 	@brief Write byte to fifo buffer
@@ -236,7 +236,7 @@ int32_t lFifoPrintInteger(Fifo_t *pxFifo, uint64_t ullValue, FifoPrintIntegerFla
 	@param[in] xArgs            Parameters
 	@return Writed bytes count, <0 if error
 */
-int32_t lFifoVPrintf(Fifo_t *xFifo, const uint8_t* pcFormat, va_list xArgs);
+int32_t lFifoVPrintf(Fifo_t *xFifo, const char* pcFormat, va_list xArgs);
 
 /*!
 	@brief Write formated string to stream buffer
@@ -244,7 +244,7 @@ int32_t lFifoVPrintf(Fifo_t *xFifo, const uint8_t* pcFormat, va_list xArgs);
 	@param[in] pcFormat  "{[{char}]{[%[flags][width][.precision][length]specifier]}[{char}]}"
 	\return Writed bytes count, <0 if error
 */
-static inline int32_t lFifoPrintf(Fifo_t *pxFifo, const uint8_t* pcFormat, ...) {
+static inline int32_t lFifoPrintf(Fifo_t *pxFifo, const char* pcFormat, ...) {
 	va_list args;
 	va_start(args, pcFormat);
 	int32_t streamed = lFifoVPrintf(pxFifo, pcFormat, args);
@@ -376,7 +376,7 @@ int32_t fifo_fill_all(fifo_t *fifo, uint8_t filler, uint16_t count);
 	@param[in] count User data length
 	@return Writed bytes count
 */
-int32_t fifo_write_string(fifo_t *fifo, const uint8_t *string);
+int32_t fifo_write_string(fifo_t *fifo, const char *string);
 
 /*!
 	@brief Write data to fifo buffer till string terminator. Terminator included.
@@ -385,7 +385,7 @@ int32_t fifo_write_string(fifo_t *fifo, const uint8_t *string);
 	@param[in] count User data length
 	@return Writed bytes count or -1 if data doesn't fits in stream buffer
 */
-int32_t fifo_write_string_all(fifo_t *fifo, uint8_t *string);
+int32_t fifo_write_string_all(fifo_t *fifo, const char *string);
 
 /*!
 	@brief Write byte to fifo buffer
@@ -428,7 +428,7 @@ int32_t fifo_print_integer(fifo_t *fifo, uint64_t value, fifo_print_integer_flag
 	@param[in] args           Parameters
 	@return Writed bytes count, <0 if error
 */
-int32_t fifo_vprintf(fifo_t *fifo, const uint8_t* format, va_list args);
+int32_t fifo_vprintf(fifo_t *fifo, const char* format, va_list args);
 
 /*!
 	@brief Write formated string to stream buffer
@@ -436,7 +436,7 @@ int32_t fifo_vprintf(fifo_t *fifo, const uint8_t* format, va_list args);
 	@param[in] format  "{[{char}]{[%[flags][width][.precision][length]specifier]}[{char}]}"
 	\return Writed bytes count, <0 if error
 */
-static inline int32_t fifo_printf(fifo_t *fifo, const uint8_t* format, ...)  __attribute__ ((alias ("lFifoPrintf")));
+static inline int32_t fifo_printf(fifo_t *fifo, const char* format, ...)  __attribute__ ((alias ("lFifoPrintf")));
 
 /*!
 	@brief Read data from fifo buffer without shift

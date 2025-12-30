@@ -29,7 +29,7 @@ extern "C" {
     @return -1 in case str is NULL
     @return Symbols count till string terminator
 */
-int32_t lStrLen(const uint8_t* pcStr);
+int32_t lStrLen(const char* pcStr);
 
 /*!
     @brief Compare strings case sensitive
@@ -39,7 +39,7 @@ int32_t lStrLen(const uint8_t* pcStr);
     @return -(copared count) in case the first character that does not match has a lower value in str1 than in str2
     @return (copared count) in case the first character that does not match has a greater value in str1 than in str2 or simbols are equal
  */
-int32_t lStrCmp(const uint8_t* pcStr1, const uint8_t* pcStr2);
+int32_t lStrCmp(const char* pcStr1, const char* pcStr2);
 
 /*!
     @brief Compare strings case not sensitive
@@ -49,7 +49,7 @@ int32_t lStrCmp(const uint8_t* pcStr1, const uint8_t* pcStr2);
     @return -(copared count) in case the first character that does not match has a lower value in str1 than in str2
     @return (copared count) in case the first character that does not match has a greater value in str1 than in str2 or simbols are equal
  */
-int32_t lStrCaseCmp(const uint8_t* pcStr1, const uint8_t* pcStr2);
+int32_t lStrCaseCmp(const char* pcStr1, const char* pcStr2);
 
 /*!
     @brief Compare two strings
@@ -58,7 +58,7 @@ int32_t lStrCaseCmp(const uint8_t* pcStr1, const uint8_t* pcStr2);
     @return 1 in case the contents of both strings are equal and not NULL
     @return 0 in other case
  */
-int32_t lStrEqual(const uint8_t* pcStr1, const uint8_t* pcStr2);
+int32_t lStrEqual(const char* pcStr1, const char* pcStr2);
 
 /*!
     @brief Copy string into user buffer
@@ -67,7 +67,7 @@ int32_t lStrEqual(const uint8_t* pcStr1, const uint8_t* pcStr2);
     @return -1 in case buffer is NULL or sring is NULL or pointers are equal
     @return Symbols copied
 */
-int32_t lStrCpy(uint8_t* pcBuffer, const uint8_t* pcStr);
+int32_t lStrCpy(char* pcBuffer, const char* pcStr);
 
 /*!
     @brief Copy specified length of string into user buffer
@@ -77,7 +77,7 @@ int32_t lStrCpy(uint8_t* pcBuffer, const uint8_t* pcStr);
     @return -1 in case buffer is NULL or sring is NULL or lCount <= 0 or pointers are equal
     @return Symbols copied
 */
-int32_t lStrnCpy(uint8_t* pcBuffer, int32_t lCount, const uint8_t* pcStr);
+int32_t lStrnCpy(char* pcBuffer, int32_t lCount, const char* pcStr);
 
 /*!
     @brief Concatenate two strings
@@ -87,7 +87,7 @@ int32_t lStrnCpy(uint8_t* pcBuffer, int32_t lCount, const uint8_t* pcStr);
     @return -1 in case wrong parameters (buf is NULL or some of strings is NULL or buffer pointer and some of string are the same)
     @return Summary length of concatenated strings
  */
-int32_t lStrCat(uint8_t* pcBuffer, const uint8_t* pcStr1, const uint8_t* pcStr2);
+int32_t lStrCat(char* pcBuffer, const char* pcStr1, const char* pcStr2);
 
 /*!
     @brief Search first entry string 2 in string 1
@@ -96,7 +96,7 @@ int32_t lStrCat(uint8_t* pcBuffer, const uint8_t* pcStr1, const uint8_t* pcStr2)
     @return -1 in case of some of strings is NULL or string 2 is empty or no one entry string 2 in string 1
     @return Offset in string 1 to first entry string 2
  */
-int32_t lStrSrc(const uint8_t* pcStr1, const uint8_t* pcStr2);
+int32_t lStrSrc(const char* pcStr1, const char* pcStr2);
 
 /*!
     @brief Search first entry string 2 in string 1 with in specified length
@@ -106,7 +106,7 @@ int32_t lStrSrc(const uint8_t* pcStr1, const uint8_t* pcStr2);
     @return -1 in case of some of strings is NULL or string 2 is empty or no one entry string 2 in string 1
     @return Offset in string 1 to first entry string 2
  */
-int32_t lStrnSrc(const uint8_t* pcStr1, int32_t lLength, const uint8_t* pcStr2);
+int32_t lStrnSrc(const char* pcStr1, int32_t lLength, const char* pcStr2);
 
 /*!
     @brief Search last entry string 2 in string 1 with in specified length
@@ -116,7 +116,7 @@ int32_t lStrnSrc(const uint8_t* pcStr1, int32_t lLength, const uint8_t* pcStr2);
     @return -1 in case some of strings is NULL or string 2 is empty or no one entry string 2 in string 1
     @return Offset in string 1 to last entry string 2
  */
-int32_t lStrnSrcLast(const uint8_t* pcStr1, int32_t lLength, const uint8_t* pcStr2);
+int32_t lStrnSrcLast(const char* pcStr1, int32_t lLength, const char* pcStr2);
 
 /*!
     @brief Places string representation of an integer value in the buffer
@@ -124,7 +124,7 @@ int32_t lStrnSrcLast(const uint8_t* pcStr1, int32_t lLength, const uint8_t* pcSt
     @param[in] lValue    Integer value
     @return Characters count, -1 in case of error
  */
-int32_t lLongToStr(uint8_t* pcBufer, int32_t lValue);
+int32_t lLongToStr(char* pcBufer, int32_t lValue);
 
 /*!
     @brief Parse string representation of an integer in to value
@@ -133,19 +133,19 @@ int32_t lLongToStr(uint8_t* pcBufer, int32_t lValue);
     @param[in] ucBase      Notation (2,8,10,16)
     @return Characters parced
  */
-int32_t lStrToLong(uint32_t *plOutValue, uint8_t *pcStrValue, uint8_t ucBase);
+int32_t lStrToLong(uint32_t *plOutValue, char *pcStrValue, uint8_t ucBase);
 
 /*!
     @brief Convert string to lower case
     @param[in/out] pcStr  String
  */
-void vStrToLowerCase(uint8_t *pcStr);
+void vStrToLowerCase(char *pcStr);
 
 /*!
     @brief Convert string to upper case
     @param[in/out] pcStr  String
  */
-void vStrToUpperCase(uint8_t *pcStr);
+void vStrToUpperCase(char *pcStr);
 
 /*!
   Snake notation
@@ -157,7 +157,7 @@ void vStrToUpperCase(uint8_t *pcStr);
     @return -1 in case str is NULL
     @return Symbols count till string terminator
 */
-int32_t str_len(const uint8_t* str);
+int32_t str_len(const char *str);
 
 /*!
     @brief Compare strings case sensitive
@@ -167,7 +167,7 @@ int32_t str_len(const uint8_t* str);
     @return -(copared count) in case the first character that does not match has a lower value in str1 than in str2
     @return (copared count) in case the first character that does not match has a greater value in str1 than in str2 or simbols are equal
  */
-int32_t str_cmp(const uint8_t* str1, const uint8_t* str2);
+int32_t str_cmp(const char *str1, const char *str2);
 
 /*!
     @brief Compare strings case not sensitive
@@ -177,7 +177,7 @@ int32_t str_cmp(const uint8_t* str1, const uint8_t* str2);
     @return -(copared count) in case the first character that does not match has a lower value in str1 than in str2
     @return (copared count) in case the first character that does not match has a greater value in str1 than in str2 or simbols are equal
  */
-int32_t str_case_cmp(const uint8_t* str1, const uint8_t* str2);
+int32_t str_case_cmp(const char *str1, const char *str2);
 
 /*!
     @brief Compare two strings
@@ -186,7 +186,7 @@ int32_t str_case_cmp(const uint8_t* str1, const uint8_t* str2);
     @return 1 in case the contents of both strings are equal and not NULL
     @return 0 in other case
  */
-int32_t str_equal(const uint8_t* str1, const uint8_t* str2);
+int32_t str_equal(const char *str1, const char *str2);
 
 /*!
     @brief Copy string into user buffer
@@ -195,7 +195,7 @@ int32_t str_equal(const uint8_t* str1, const uint8_t* str2);
     @return -1 in case buffer is NULL or sring is NULL or pointers are equal
     @return Symbols copied
 */
-int32_t str_cpy(uint8_t* buffer, const uint8_t* str);
+int32_t str_cpy(char *buffer, const char *str);
 
 /*!
     @brief Copy specified length of string into user buffer
@@ -205,7 +205,7 @@ int32_t str_cpy(uint8_t* buffer, const uint8_t* str);
     @return -1 in case buffer is NULL or sring is NULL or lCount <= 0 or pointers are equal
     @return Symbols copied
 */
-int32_t strn_cpy(uint8_t* buffer, int32_t count, const uint8_t* str);
+int32_t strn_cpy(char *buffer, int32_t count, const char *str);
 
 /*!
     @brief Concatenate two strings
@@ -215,7 +215,7 @@ int32_t strn_cpy(uint8_t* buffer, int32_t count, const uint8_t* str);
     @return -1 in case wrong parameters (buf is NULL or some of strings is NULL or buffer pointer and some of string are the same)
     @return Summary length of concatenated strings
  */
-int32_t str_cat(uint8_t* buffer, const uint8_t* str1, const uint8_t* str2);
+int32_t str_cat(char *buffer, const char *str1, const char *str2);
 
 /*!
     @brief Search first entry string 2 in string 1
@@ -224,7 +224,7 @@ int32_t str_cat(uint8_t* buffer, const uint8_t* str1, const uint8_t* str2);
     @return -1 in case of some of strings is NULL or string 2 is empty or no one entry string 2 in string 1
     @return Offset in string 1 to first entry string 2
  */
-int32_t str_src(const uint8_t* str1, const uint8_t* str2);
+int32_t str_src(const char *str1, const char *str2);
 
 /*!
     @brief Search first entry string 2 in string 1 with in specified length
@@ -234,7 +234,7 @@ int32_t str_src(const uint8_t* str1, const uint8_t* str2);
     @return -1 in case of some of strings is NULL or string 2 is empty or no one entry string 2 in string 1
     @return Offset in string 1 to first entry string 2
  */
-int32_t strn_src(const uint8_t* str1, int32_t length, const uint8_t* str2);
+int32_t strn_src(const char *str1, int32_t length, const char *str2);
 
 /*!
     @brief Search last entry string 2 in string 1 with in specified length
@@ -244,7 +244,7 @@ int32_t strn_src(const uint8_t* str1, int32_t length, const uint8_t* str2);
     @return -1 in case some of strings is NULL or string 2 is empty or no one entry string 2 in string 1
     @return Offset in string 1 to last entry string 2
  */
-int32_t strn_src_last(const uint8_t* str1, int32_t length, const uint8_t* str2);
+int32_t strn_src_last(const char *str1, int32_t length, const char *str2);
 
 /*!
     @brief Places string representation of an integer value in the buffer
@@ -252,27 +252,28 @@ int32_t strn_src_last(const uint8_t* str1, int32_t length, const uint8_t* str2);
     @param[in] value    Integer value
     @return Characters count, -1 in case of error
  */
-int32_t long_to_str(uint8_t* bufer, int32_t value);
+int32_t long_to_str(char *bufer, int32_t value);
 
 /*!
     @brief Parse string representation of an integer in to value
     @param[out] value    Integer buffer
-    @param[in] str_value  Integer string
+    @param[in] str_value Integer string
+    @param[in] base      
     @return Characters parced
  */
-int32_t str_to_long(uint32_t *value, uint8_t *str_value, uint8_t base);
+int32_t str_to_long(uint32_t *value, char *str_value, uint8_t base);
 
 /*!
     @brief Convert string to lower case
     @param[in/out] str  String
  */
-void str_to_lower_case(uint8_t *str);
+void str_to_lower_case(char *str);
 
 /*!
     @brief Convert string to upper case
     @param[in/out] str  String
  */
-void str_to_upper_case(uint8_t *str);
+void str_to_upper_case(char *str);
 
 
 
