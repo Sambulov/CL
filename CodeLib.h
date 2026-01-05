@@ -64,6 +64,7 @@ typedef void** cl_tuple_t;
 #include "Binary/BitOp.h"
 #include "Converters/StringConverter.h"
 #include "Converters/CharsetEncoding.h"
+#include "Converters/Base64Encoding.h"
 #include "DataStructures/Str.h"
 #include "DataStructures/CircularBuffer.h"
 #include "DataStructures/Fifo.h"

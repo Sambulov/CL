@@ -37,7 +37,7 @@ uint8_t bFsmSetTransitionLog(FiniteStateMachine_t *pxFsm, FsmTransitionLog_t *px
     return CL_TRUE;
 }
 #else
-#define fsm_log(fsm, event, state)
+#define fsm_log(fsm, event)
 #define fsm_log_push(fsm)
 #endif
 
@@ -60,7 +60,9 @@ uint8_t bFsmInit(FiniteStateMachine_t *pxFsm, const FsmTransition_t *apxTransiti
             fsm->pfCurrentState = libNULL;
             fsm->apxTransitions = apxTransitions;
             fsm->pxContext = pxContext;
+            #ifdef DEBUG
             fsm->pxLog = libNULL;
+            #endif
             bFsmReset(pxFsm);
             return CL_TRUE;
         }

@@ -1,11 +1,14 @@
 #ifndef CODE_LIB_MACROS_H_INCLUDED
 #define CODE_LIB_MACROS_H_INCLUDED
 
-#define CL_SIZE_ALIGN2(x)         (((x) + (x & 0x01)))
-#define CL_SIZE_ALIGN4(x)         ((SIZE_ALIGN2(x) + (SIZE_ALIGN2(x) & 0x02)))
+#define CL_SIZE_ALIGN2(x)         (((x) + 1) & 0xFFFFFFFE)
+#define CL_SIZE_ALIGN4(x)         (((x) + 3) & 0xFFFFFFFC)
+#define CL_SIZE_ALIGN8(x)         (((x) + 7) & 0xFFFFFFF8)
 
 #define CL_STRINGIFY(x) #x
 #define CL_TOSTR(x) CL_STRINGIFY(x)
+
+#define CL_IS_A_POWER_OF_2(x)     (!((x) & (((uint32_t)(x)) - 1)) && (x))
 
 #define CL_BIT_MASK(start, end)   ((0xFFFFFFFFUL << (start)) & (0xFFFFFFFFUL >> (31U - (uint32_t)(end))))
 
