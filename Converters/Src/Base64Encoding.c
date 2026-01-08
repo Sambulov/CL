@@ -15,7 +15,6 @@ static const uint8_t dataShift[4] = {8, 4, 2, 0};
 int32_t lBase64Encode(uint8_t *pucOutBase64, uint32_t ulSize, const uint8_t *pucData, uint32_t ulLength) {
 	if((ulSize < lBase64EncodeBufferRequired(ulLength)) || (pucData == libNULL))
 	    return -1;
-	int32_t dataIndex = 0;
 	int32_t bufIndex = 0;
 	uint8_t encode;
 	uint8_t left = 0;
