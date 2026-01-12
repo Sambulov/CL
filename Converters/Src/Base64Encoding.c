@@ -13,12 +13,12 @@ static const uint8_t encShift[4] = {2, 4, 6, 8};
 static const uint8_t dataShift[4] = {8, 4, 2, 0};
 
 int32_t lBase64Encode(uint8_t *pucOutBase64, uint32_t ulSize, const uint8_t *pucData, uint32_t ulLength) {
-	if((ulSize < lBase64EncodeBufferRequired(ulLength)) || (pucData == libNULL))
+	if((ulSize < (uint32_t)lBase64EncodeBufferRequired(ulLength)) || (pucData == libNULL))
 	    return -1;
 	int32_t bufIndex = 0;
 	uint8_t encode;
 	uint8_t left = 0;
-	for(int32_t i = 0; i < ulLength; i++) {
+	for(uint32_t i = 0; i < ulLength; i++) {
 		encode = left | pucData[i] >> encShift[bufIndex & 3];
 		pucOutBase64[bufIndex] = encodeTable[encode & 0x3f];
 		bufIndex++;
@@ -33,15 +33,16 @@ int32_t lBase64Encode(uint8_t *pucOutBase64, uint32_t ulSize, const uint8_t *puc
 }
 
 int32_t lBase64Decode(uint8_t *pucOutData, uint32_t ulSize, const uint8_t *pucBase64, uint32_t ulLength) {
-	if (ulLength & 3) return -1;
+	if ((ulSize < (uint32_t)lBase64DecodeBufferRequired(pucBase64, ulLength)) || (pucOutData == libNULL) || (ulLength & 3)) 
+		return -1;
 	int32_t bufIndex = 0;
 	uint8_t left = 0;
 	int8_t sextet;
-	for (int32_t i = 0; i < ulLength; i++) {
+	for (uint32_t i = 0; i < ulLength; i++) {
 	    sextet = pucBase64[i];
 		if (((i & 3) >= 2) && pucOutData[i] == '=')
 			break;
-		if ((sextet < 43) || (sextet > 127) || ((sextet = decodeTable[sextet - 43]) < 0))
+		if ((sextet < 43) || (sextet > 122) || ((sextet = decodeTable[sextet - 43]) < 0))
 			return -1;
 		pucOutData[bufIndex] = left;
 		pucOutData[bufIndex] |= sextet >> dataShift[i & 3];
