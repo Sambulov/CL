@@ -652,8 +652,11 @@ int32_t lClVPrintf(PrintfWriter_t pfWriter, void *pxWrContext, const uint8_t* pc
                         int32_t symb = (uint8_t)va_arg(xArgs, int32_t);
                         result = _lPrintfPrintString(pfWriter, pxWrContext, (uint8_t*)&symb, 1, width, options);
                     }
-                    else if (options & PRINTF_TYPE_STRING)
-                        result = _lPrintfPrintString(pfWriter, pxWrContext, va_arg(xArgs, uint8_t*), precision, width, options);
+                    else if (options & PRINTF_TYPE_STRING) {
+						uint8_t *str = va_arg(xArgs, uint8_t*);
+						if(*str == '\0') continue;
+                        result = _lPrintfPrintString(pfWriter, pxWrContext, str, precision, width, options);
+					}
                     else if (options & PRINTF_TYPE_DOUBLE || options & PRINTF_TYPE_DOUBLE_SCIENTIFIC) {
                         float fValue = (float)va_arg(xArgs, double);
                         result = _lPrintFloat(pfWriter, pxWrContext, fValue, options, width, precision);
