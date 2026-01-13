@@ -26,4 +26,6 @@
 
 #define CL_TIME_ELAPSED(timestamp, delay, now) ((uint32_t)(now - timestamp) >= (uint32_t)(delay))
 
+#define CL_TO_BCD_BYTE(val)  ((uint8_t)((val % 10) | ((val / 10) % 10) << 4))
+
 #endif //CODE_LIB_MACROS_H_INCLUDED
