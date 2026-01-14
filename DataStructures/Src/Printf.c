@@ -61,7 +61,7 @@ static inline int32_t _lWriteStr(PrintfWriter_t pfWriter, void *pxWrContext, uin
 	@param[in/out]pulCursor		Current offset in format string
 	@param[in/out]pulOptions	Format options
 */
-static void _vPrintfParseFlags(const uint8_t* pcFormat, uint32_t *pulCursor, uint32_t *pulOptions) {
+static void _vPrintfParseFlags(const char* pcFormat, uint32_t *pulCursor, uint32_t *pulOptions) {
 	/* Flags */
 	uint8_t symbol;
 	do {
@@ -101,7 +101,7 @@ static void _vPrintfParseFlags(const uint8_t* pcFormat, uint32_t *pulCursor, uin
 	@param[in]xArgs				Pointer to format arguments
 	@return 0 or width if present
 */
-static int32_t _lPrintfParseWidth(const uint8_t* pcFormat, uint32_t *pulCursor, uint32_t *pulOptions, va_list xArgs) {
+static int32_t _lPrintfParseWidth(const char* pcFormat, uint32_t *pulCursor, uint32_t *pulOptions, va_list xArgs) {
 	/* Width */
 	uint8_t symbol = pcFormat[*pulCursor];
 	int32_t width = 0;
@@ -137,7 +137,7 @@ static int32_t _lPrintfParseWidth(const uint8_t* pcFormat, uint32_t *pulCursor, 
 	@param[in]xArgs				Pointer to format arguments
 	@return 0 or precision if present
 */
-static int32_t _lPrintfParsePrecision(const uint8_t* pcFormat, uint32_t *pulCursor, uint32_t *pulOptions, va_list xArgs) {
+static int32_t _lPrintfParsePrecision(const char* pcFormat, uint32_t *pulCursor, uint32_t *pulOptions, va_list xArgs) {
 	/* Precision */
 	uint8_t symbol = pcFormat[*pulCursor];
 	int32_t precision = 0;
@@ -181,7 +181,7 @@ static int32_t _lPrintfParsePrecision(const uint8_t* pcFormat, uint32_t *pulCurs
 	@param[in/out]pulCursor		Current offset in format string
 	@param[in/out]pulOptions	Format options
 */
-static void _vPrintfParseLength(const uint8_t* pcFormat, uint32_t *pulCursor, uint32_t *pulOptions) {
+static void _vPrintfParseLength(const char* pcFormat, uint32_t *pulCursor, uint32_t *pulOptions) {
 	/* Length */
 	uint8_t symbol = pcFormat[*pulCursor];
 	/* The length sub-specifier modifies the length of the data type. */
@@ -211,7 +211,7 @@ static void _vPrintfParseLength(const uint8_t* pcFormat, uint32_t *pulCursor, ui
 	@param[in/out]pulCursor		Current offset in format string
 	@param[in/out]pulOptions	Format options
 */
-static void _vPrintfParseSpecifier(const uint8_t* pcFormat, uint32_t *pulCursor, uint32_t *pulOptions) {
+static void _vPrintfParseSpecifier(const char* pcFormat, uint32_t *pulCursor, uint32_t *pulOptions) {
 	/* Specifier */
 	uint8_t symbol = pcFormat[*pulCursor];
 	if (IS_UPALPHA(symbol)) *pulOptions |= PRINTF_SPECIFIER_UPPER_CASE;
@@ -623,7 +623,7 @@ static int32_t _lPrintInteger(PrintfWriter_t pfWriter, void *pxWrContext, uint64
 	return streamed;
 }
 
-int32_t lClVPrintf(PrintfWriter_t pfWriter, void *pxWrContext, const uint8_t* pcFormat, va_list xArgs) {
+int32_t lClVPrintf(PrintfWriter_t pfWriter, void *pxWrContext, const char* pcFormat, va_list xArgs) {
     if(!pfWriter) return -1;
     int32_t streamed = 0;
     int32_t result;
@@ -703,17 +703,17 @@ static int32_t lPfwStream(void *arg, uint8_t *data, uint32_t amount) {
 	return res;
 }
 
-int32_t lClSnprintf(uint8_t *ucBuf, uint32_t ulSize, const uint8_t *ucFormat, ...) {
+int32_t lClSnprintf(uint8_t *ucBuf, uint32_t ulSize, const char *ucFormat, ...) {
 	uint32_t offset = 0;
 	if((ucBuf == libNULL) || (!ulSize)) return 0;
 	ulSize--; /* reserve for string terminator '\0' */
 	void *arg = cl_tuple_make(ucBuf, &ulSize, &offset);
 	va_list args;
-	offset = lClVPrintf(&lPfwStream, arg, (uint8_t *)ucFormat, args);
+	offset = lClVPrintf(&lPfwStream, arg, ucFormat, args);
 	ucBuf[offset] = '\0';
 	va_end(args);
 	return offset;
 }
 
-int32_t cl_vprintf(printf_writer_t, void *, const uint8_t*, va_list)           __attribute__ ((alias ("lClVPrintf")));
-int32_t cl_snprintf(uint8_t *buf, uint32_t size, const uint8_t *format, ...)   __attribute__ ((alias ("lClSnprintf")));
+int32_t cl_vprintf(printf_writer_t, void *, const char*, va_list)           __attribute__ ((alias ("lClVPrintf")));
+int32_t cl_snprintf(uint8_t *buf, uint32_t size, const char *format, ...)   __attribute__ ((alias ("lClSnprintf")));
