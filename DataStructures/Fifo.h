@@ -13,17 +13,11 @@
 extern "C" {
 #endif
 
-#define FIFIO_DESCRIPTOR_SIZE    12
+#include "Printf.h"
 
-typedef enum {
-	UNSIGNED_INT  = 0,
-	SIGNED_INT    = 1,
-	BIN_INT       = 2,
-	OCT_INT       = 3,
-	HEX_INT       = 4,
-	INT_FLAG_MASK = 7,
-	NO_PREFIX     = 8
-} FifoPrintIntegerFlags_t;
+typedef PrintIntegerFlags_t FifoPrintIntegerFlags_t;
+
+#define FIFIO_DESCRIPTOR_SIZE    12
 
 /*!
 	@brief Initialize buffer, storing self descriptor with in provaded users buffer is allowed

@@ -298,10 +298,8 @@ static void _RxFrame(_prModbus_t *pxMb) {
     uint16_t (*usCrcCalc)(const uint8_t *, uint16_t, const uint16_t *) = &usCrc16ModbusRtu;
     if(pxMb->bPduMode) usCrcCalc = &_usModbusDummyCrc;
     else if (pxMb->bAsciiMode) usCrcCalc = &_usCrc16ModbusAscii;
-    if (pxMb->cXferState <= 0) {
+    if (pxMb->cXferState <= 0)
         pxMb->cXferState = 1;
-        pxMb->usTimer = pxMb->pxIface->pfTimer(pxMb->pxTimerContext);
-    }
     ModbusFrame_t *frame = &pxMb->xFrame;
     uint8_t *tmpBuffer = (uint8_t *)&pxMb->usTmpBuffer;
     switch (pxMb->cXferState) {
@@ -434,11 +432,16 @@ static void _vModbusServerWork(_prModbus_t *pxMb) {
     uint16_t now = pxMb->pxIface->pfTimer(pxMb->pxTimerContext);
     if (!pxMb->bTransmitPhase) { /* Awaite request frame */
         if(pxMb->bRequestComplete) {
-            if (((uint16_t)(now - pxMb->usTimer) < pxMb->tx_timeout)) return;
+            /* delay for responce */
+            if (((uint16_t)(now - pxMb->usTimer) < pxMb->tx_timeout)) 
+                return;
             pxMb->bRequestComplete = 0;
         }
+        if ((uint16_t)(now - pxMb->usTimer) >= pxMb->rx_timeout) 
+            pxMb->cXferState = 0;
         _RxFrame(pxMb);
-        if ((uint16_t)(now - pxMb->usTimer) >= pxMb->rx_timeout) pxMb->cXferState = 0;
+        if (pxMb->cXferState == 1)
+            pxMb->usTimer = pxMb->pxIface->pfTimer(pxMb->pxTimerContext);
         if (pxMb->cXferState == 0) { /* Frame received */
             if(_bModbusServerSetHandler(pxMb)) {
                 pxMb->bRequestComplete = 1;
@@ -454,20 +457,23 @@ static void _vModbusServerWork(_prModbus_t *pxMb) {
 
 static void _vModbusClientWork(_prModbus_t *pxMb) {
     uint16_t now = pxMb->pxIface->pfTimer(pxMb->pxTimerContext);
+    uint8_t bTimeout = 0;
     if (pxMb->bTransmitPhase) {
-        if(pxMb->cXferState <= 0) pxMb->usTimer = now;
+        //if(pxMb->cXferState <= 0) pxMb->usTimer = now;
         _TxFrame(pxMb);
         if(pxMb->cXferState <= 0) {
             pxMb->bTransmitPhase = 0;
             pxMb->bRequestComplete = (pxMb->eRxType == eModbusPacketNone) || (pxMb->cXferState < 0);
             pxMb->usTimer = now;
         }
+        else
+            bTimeout = ((uint16_t)(now - pxMb->usTimer) >= pxMb->tx_timeout);
     }
     else { /* Awaite response */
         _RxFrame(pxMb);
         pxMb->bRequestComplete = (pxMb->cXferState <= 0) && !(pxMb->bSkeepFrame);
+        bTimeout = ((uint16_t)(now - pxMb->usTimer) >= pxMb->rx_timeout);
     }
-    uint8_t bTimeout = ((uint16_t)(now - pxMb->usTimer) >= pxMb->tx_timeout);
     if(pxMb->bRequestComplete || bTimeout) {
         if (pxMb->pfOnComplete != libNULL) {
             ModbusErrorCode_t err = 0;
@@ -484,6 +490,7 @@ static void _vModbusClientWork(_prModbus_t *pxMb) {
             pxMb->pfOnComplete((Modbus_t *)pxMb, pxMb->pxCbContext, &pxMb->xFrame);
             pxMb->cXferState = -1;
         }
+        pxMb->usTimer = now;
         pxMb->bProcessing = 0;
     }
 }

@@ -5,8 +5,8 @@
         Author: Sambulov Dmitry
         e-mail: dmitry.sambulov@gmail.com
  */
-#ifndef SMALL_CIRCULAR_BUFFER_H_INCLUDED
-#define SMALL_CIRCULAR_BUFFER_H_INCLUDED
+#ifndef SIMPLE_CIRCULAR_BUFFER_H_INCLUDED
+#define SIMPLE_CIRCULAR_BUFFER_H_INCLUDED
 
 #ifdef __cplusplus
 extern "C" {
@@ -16,43 +16,44 @@ typedef struct {
   uint8_t *pucBuffer;
   uint16_t usTail;
   uint16_t usHead;
-  uint16_t usSize;
+  uint16_t usMax;
 } SimpleCircularBuffer_t;
-
 
 /*!
   Note: buffer size must be power of 2
 */
 static inline void vScbInit(SimpleCircularBuffer_t *pxBuf, uint8_t *pucBuffer, uint16_t usSize) {
   pxBuf->usHead = pxBuf->usTail = 0;
-  pxBuf->usSize = usSize;
+  pxBuf->usMax = usSize - 1;
   pxBuf->pucBuffer = pucBuffer;
 }
 
-static inline uint16_t usScbAvailable(SimpleCircularBuffer_t *pxBuf) {
-  return (pxBuf->usHead - pxBuf->usTail) & (pxBuf->usSize - 1);
+static inline int32_t usScbAvailable(SimpleCircularBuffer_t *pxBuf) {
+  return (pxBuf->usHead - pxBuf->usTail) & pxBuf->usMax;
 }
 
-static inline uint16_t usScbNonSegmentedAvailable(SimpleCircularBuffer_t *pxBuf) {
-  return ((pxBuf->usHead > pxBuf->usTail)? (pxBuf->usHead - pxBuf->usTail): (pxBuf->usSize - pxBuf->usTail));
+static inline int32_t usScbAvailableFree(SimpleCircularBuffer_t *pxBuf) {
+  return pxBuf->usMax + pxBuf->usTail - pxBuf->usHead;
 }
 
-static inline uint16_t usScbAvailableFree(SimpleCircularBuffer_t *pxBuf) {
-  return (pxBuf->usSize - 1 - usScbAvailable(pxBuf));
+static inline int32_t usScbNonSegmentedAvailable(SimpleCircularBuffer_t *pxBuf) {
+  return (pxBuf->usHead >= pxBuf->usTail)? (pxBuf->usHead - pxBuf->usTail): (pxBuf->usMax - pxBuf->usTail);
 }
 
-static inline uint16_t usScbNonSegmentedAvailableFree(SimpleCircularBuffer_t *pxBuf) {
-  return ((pxBuf->usHead < pxBuf->usTail)? (pxBuf->usTail - pxBuf->usHead - 1): (pxBuf->usSize - pxBuf->usHead - ((pxBuf->usTail == 0)? 1: 0)));
+static inline int32_t usScbNonSegmentedAvailableFree(SimpleCircularBuffer_t *pxBuf) {
+  return (pxBuf->usHead >= pxBuf->usTail)? (pxBuf->usMax - pxBuf->usHead): (pxBuf->usTail - pxBuf->usHead);
 }
 
 static inline void vScbMoveTail(SimpleCircularBuffer_t *pxBuf, uint16_t usCount) {
-  uint16_t cnt = CL_MIN(usScbAvailable(pxBuf), usCount);
-  pxBuf->usTail = (pxBuf->usTail + cnt) & (pxBuf->usSize - 1);
+  uint16_t cnt = usScbAvailable(pxBuf);
+  cnt = CL_MIN(cnt, usCount);
+  pxBuf->usTail = (pxBuf->usTail + cnt) & pxBuf->usMax;
 }
 
 static inline void vScbMoveHead(SimpleCircularBuffer_t *pxBuf, uint16_t usCount) {
-  uint16_t cnt = CL_MIN(usScbAvailableFree(pxBuf), usCount);
-  pxBuf->usHead = (pxBuf->usHead + cnt) & (pxBuf->usSize - 1);
+  uint16_t cnt = usScbAvailableFree(pxBuf);
+  cnt = CL_MIN(cnt, usCount);
+  pxBuf->usHead = (pxBuf->usHead + cnt) & pxBuf->usMax;
 }
 
 static inline uint8_t *pucScbData(SimpleCircularBuffer_t *pxBuf) {
@@ -63,16 +64,38 @@ static inline uint8_t *pucScbBuffer(SimpleCircularBuffer_t *pxBuf) {
   return pxBuf->pucBuffer + pxBuf->usHead;
 }
 
-static inline void vScbPush(SimpleCircularBuffer_t *pxBuf, uint8_t ucData) {
-  pxBuf->pucBuffer[pxBuf->usHead] = ucData;
-  vScbMoveHead(pxBuf, 1);
+static inline uint8_t bScbPush(SimpleCircularBuffer_t *pxBuf, uint8_t ucData) {
+  if(usScbAvailableFree(pxBuf)) {
+    pxBuf->pucBuffer[pxBuf->usHead] = ucData;
+    pxBuf->usHead = (pxBuf->usHead + 1) & pxBuf->usMax;
+    return 1;
+  }
+  return 0;
 }
 
-static inline uint8_t ucScbPop(SimpleCircularBuffer_t *pxBuf) {
-  uint8_t data = pxBuf->pucBuffer[pxBuf->usTail];
-  vScbMoveTail(pxBuf, 1);
-  return data;
+static inline uint8_t bScbPop(SimpleCircularBuffer_t *pxBuf, uint8_t *pucOutData) {
+  if(usScbAvailable(pxBuf)) {
+    if(pucOutData) *pucOutData = pxBuf->pucBuffer[pxBuf->usTail];
+    pxBuf->usTail = (pxBuf->usTail + 1) & pxBuf->usMax;
+    return 1;
+  }
+  return 0;
 }
+
+static int32_t _lScbRead(SimpleCircularBuffer_t *pxBuf, uint8_t *pucBuf, uint16_t usSize) {
+  int32_t i = usSize;
+  while(i && bScbPop(pxBuf, pucBuf++))
+    i--;
+  return usSize - i;
+}
+
+static int32_t _lScbWrite(SimpleCircularBuffer_t *pxBuf, const uint8_t *pucData, uint16_t len) {
+  int32_t i = len;
+  while(i && bScbPush(pxBuf, *pucData++))
+    i--;
+  return len - i;
+}
+
 
 /*!
   Snake notation
@@ -83,16 +106,16 @@ typedef SimpleCircularBuffer_t simple_circular_buffer_t;
 static inline void scb_init(simple_circular_buffer_t *, uint8_t *, uint16_t)\
                                                       __attribute__ ((alias ("vScbInit")));
 
-static inline uint16_t scb_available(simple_circular_buffer_t *)\
+static inline int32_t scb_available(simple_circular_buffer_t *)\
                                                       __attribute__ ((alias ("usScbAvailable")));
 
-static inline uint16_t scb_non_segmented_available(simple_circular_buffer_t *)\
+static inline int32_t scb_non_segmented_available(simple_circular_buffer_t *)\
                                                       __attribute__ ((alias ("usScbNonSegmentedAvailable")));
 
-static inline uint16_t scb_available_free(simple_circular_buffer_t *)\
+static inline int32_t scb_available_free(simple_circular_buffer_t *)\
                                                       __attribute__ ((alias ("usScbAvailableFree")));
 
-static inline uint16_t scb_non_segmented_available_free(simple_circular_buffer_t *)\
+static inline int32_t scb_non_segmented_available_free(simple_circular_buffer_t *)\
                                                       __attribute__ ((alias ("usScbNonSegmentedAvailableFree")));
 
 static inline void scb_move_tail(simple_circular_buffer_t *, uint16_t)\
@@ -107,13 +130,20 @@ static inline uint8_t *scb_data(simple_circular_buffer_t *)\
 static inline uint8_t *scb_buffer(simple_circular_buffer_t *)\
                                                       __attribute__ ((alias ("pucScbBuffer")));
 
-static inline void scb_push(simple_circular_buffer_t *, uint8_t)\
-                                                      __attribute__ ((alias ("vScbPush")));
+static inline uint8_t scb_push(simple_circular_buffer_t *, uint8_t)\
+                                                      __attribute__ ((alias ("bScbPush")));
 
-static inline uint8_t scb_pop(simple_circular_buffer_t *)\
-                                                      __attribute__ ((alias ("ucScbPop")));
+static inline uint8_t scb_pop(simple_circular_buffer_t *, uint8_t *)\
+                                                      __attribute__ ((alias ("bScbPop")));
+
+static int32_t scb_read(simple_circular_buffer_t *, uint8_t *, uint16_t)\
+                                                      __attribute__ ((alias ("_lScbRead")));
+
+static int32_t scb_write(simple_circular_buffer_t *, const uint8_t *, uint16_t)\
+                                                      __attribute__ ((alias ("_lScbWrite")));
+
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* SMALL_CIRCULAR_BUFFER_H_INCLUDED */
+#endif /* SIMPLE_CIRCULAR_BUFFER_H_INCLUDED */

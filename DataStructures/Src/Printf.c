@@ -290,6 +290,15 @@ static int32_t _lPrintfPrintString(PrintfWriter_t pfWriter, void *pxWrContext, u
 	return streamed;
 }
 
+typedef union {
+	float value;
+	struct {
+		uint32_t fraction : 23;
+		uint32_t exponent : 8;
+		uint32_t sign     : 1;
+	};
+} FloatFormat_t;
+
 /*!
 	@brief Extract decimal representation and exponent of 10 of float value
 	@param[in]fpValue			Float value to prepare
@@ -297,26 +306,24 @@ static int32_t _lPrintfPrintString(PrintfWriter_t pfWriter, void *pxWrContext, u
 	@param[out]pulOutValue		Significant digits magic value
 	@return 0 - positive, 1 - negative, 0xFF - +infinity, 0xFE - -infinity, 0xFD - NaN, 0xFC - subnormal or zero
 */
-static int32_t _lFloatToStrPreapare(float fpValue, int32_t *plOut10Exponent, uint32_t *pulOutValue) {
-	uint32_t uvalue = *(uint32_t *)(&fpValue);
-	uint8_t exponent = (uint8_t)(uvalue >> 23);
-	uint32_t fraction = (uvalue & 0x00ffffff) | 0x00800000;
-	if (exponent == 0) return 0xfc; // subnormal, don't care about a subnormals
-	if (exponent == 0xff) {
-		if (fraction & 0x007fffff) return 0xfd; // NaN
-		if (uvalue & 0x80000000UL) return 0xfe; // -Infinity
+static int32_t _lFloatToStrPreapare(FloatFormat_t fpValue, int32_t *plOut10Exponent, uint32_t *pulOutValue) {
+    *plOut10Exponent = 0;
+    *pulOutValue = 0;
+	if (fpValue.exponent == 0) return 0xfc; // subnormal, don't care about a subnormals
+	if (fpValue.exponent == 0xff) {
+		if (fpValue.fraction & 0x007fffff) return 0xfd; // NaN
+		if (fpValue.sign) return 0xfe; // -Infinity
 		return 0xff; // +Infinity
 	}
-	*plOut10Exponent = ((((exponent >> 3)) * 77 + 63) >> 5) - 38;  // convert exponent of 2 to exponent of 10
-	fraction <<= 8;
-	*pulOutValue = (uint32_t)(((uint64_t)(fraction) * mantissaMultipliersTable[exponent >> 3]) >> 32) + 1;
-	*pulOutValue >>= (7 - (exponent & 7));
+	*plOut10Exponent = ((((fpValue.exponent >> 3)) * 77 + 63) >> 5) - 38;  // convert exponent of 2 to exponent of 10
+	*pulOutValue = (uint32_t)(((uint64_t)(((fpValue.fraction) << 8) | 0x80000000) * 
+	    mantissaMultipliersTable[fpValue.exponent >> 3]) >> 32) + 1;
+	*pulOutValue >>= (7 - (fpValue.exponent & 7));
 	while (!(*pulOutValue & 0xf0000000)) {
 		*pulOutValue = *pulOutValue * 10;
 		(*plOut10Exponent)--;
 	}
-	if (uvalue & 0x80000000UL) return 1;
-	return 0;
+	return fpValue.sign;
 }
 
 /*!
@@ -338,11 +345,11 @@ static int32_t _lPrintFloat(PrintfWriter_t pfWriter, void *pxWrContext, float fp
 	uint8_t *value = &(buffer[2]);
 	*value = '\0';
 	uint32_t significantDigits;
-	int32_t exp10;
+	int32_t exp10 = 0;
 	int32_t result, streamed = 0;
 	int32_t stage = 0;
 	int32_t extructCount = 0;
-	switch (_lFloatToStrPreapare(fpValue, &exp10, &significantDigits)) {
+	switch (_lFloatToStrPreapare((FloatFormat_t)fpValue, &exp10, &significantDigits)) {
 		case 1: *sign = '-'; break;
 		case 0:
 			if (ulOptions & PRINTF_FLAG_FORCE_SIGN) *sign = '+';
@@ -623,6 +630,26 @@ static int32_t _lPrintInteger(PrintfWriter_t pfWriter, void *pxWrContext, uint64
 	return streamed;
 }
 
+int32_t lClPrintInteger(PrintfWriter_t pfWriter, void *pxWrContext, uint64_t ullValue, PrintIntegerFlags_t eFlags) {
+	uint32_t options = PRINTF_FLAG_ALIGNMENT_LEFT;
+	if (eFlags & NO_PREFIX) options = PRINTF_TYPE_UNSIGNED_NO_PREFIX;
+	eFlags &= INT_FLAG_MASK;
+	switch (eFlags) {
+		case SIGNED_INT: options |= PRINTF_TYPE_SIGNED; break;
+		case BIN_INT: options |= PRINTF_TYPE_UNSIGNED_BIN; break;
+		case OCT_INT: options |= PRINTF_TYPE_UNSIGNED_OCT; break;
+		case HEX_INT: options |= PRINTF_TYPE_UNSIGNED_HEX; break;
+		default: break;
+	}
+	return _lPrintInteger(pfWriter, pxWrContext, ullValue, options, 0, 0);
+}
+
+int32_t lClPrintFloat(PrintfWriter_t pfWriter, void *pxWrContext, float fpValue) {
+	/* todo format */
+	int32_t options = PRINTF_TYPE_DOUBLE_SCIENTIFIC | PRINTF_TYPE_DOUBLE | PRINTF_FLOAT_ZERO_TRUNC | PRINTF_PRECISION_PRESENT;
+	return _lPrintFloat(pfWriter, pxWrContext, fpValue, options, 0, 10);
+}
+
 int32_t lClVPrintf(PrintfWriter_t pfWriter, void *pxWrContext, const char* pcFormat, va_list xArgs) {
     if(!pfWriter) return -1;
     int32_t streamed = 0;
@@ -703,6 +730,22 @@ static int32_t lPfwStream(void *arg, uint8_t *data, uint32_t amount) {
 	return res;
 }
 
+int32_t lClSnPrintInteger(uint8_t *ucBuf, uint32_t ulSize, uint64_t ullValue, PrintIntegerFlags_t eFlags) {
+	uint32_t offset = 0;
+	void *arg = cl_tuple_make(ucBuf, &ulSize, &offset);
+	lClPrintInteger(&lPfwStream, arg, ullValue, eFlags);
+	ucBuf[offset] = '\0';
+	return offset;
+}
+
+int32_t lClSnPrintFloat(uint8_t *ucBuf, uint32_t ulSize, float fpValue) {
+	uint32_t offset = 0;
+	void *arg = cl_tuple_make(ucBuf, &ulSize, &offset);
+	lClPrintFloat(&lPfwStream, arg, fpValue);
+	ucBuf[offset] = '\0';
+	return offset;
+}
+
 int32_t lClSnprintf(uint8_t *ucBuf, uint32_t ulSize, const char *ucFormat, ...) {
 	uint32_t offset = 0;
 	if((ucBuf == libNULL) || (!ulSize)) return 0;
@@ -715,5 +758,11 @@ int32_t lClSnprintf(uint8_t *ucBuf, uint32_t ulSize, const char *ucFormat, ...) 
 	return offset;
 }
 
+
+
 int32_t cl_vprintf(printf_writer_t, void *, const char*, va_list)           __attribute__ ((alias ("lClVPrintf")));
-int32_t cl_snprintf(uint8_t *buf, uint32_t size, const char *format, ...)   __attribute__ ((alias ("lClSnprintf")));
+int32_t cl_snprintf(uint8_t *, uint32_t, const char *, ...)                 __attribute__ ((alias ("lClSnprintf")));
+int32_t cl_print_integer(printf_writer_t, void *, uint64_t, print_integer_flags_t) __attribute__ ((alias ("lClPrintInteger")));
+int32_t cl_snprint_integer(uint8_t *, uint32_t, uint64_t, print_integer_flags_t) __attribute__ ((alias ("lClSnPrintInteger")));
+int32_t cl_print_float(printf_writer_t, void *, float)                      __attribute__ ((alias ("lClPrintFloat")));
+int32_t cl_snprint_float(uint8_t *, uint32_t, float)                        __attribute__ ((alias ("lClSnPrintFloat")));
