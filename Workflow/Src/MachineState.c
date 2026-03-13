@@ -70,55 +70,36 @@ uint8_t bFsmInit(FiniteStateMachine_t *pxFsm, const FsmTransition_t *apxTransiti
     return CL_FALSE;
 }
 
-static uint8_t _bFsmCoroutine(coroutine_t *pxThis, uint8_t bCancel, void *pxArg) {
-  (void)pxThis;
-  return !bFsmProcess((FiniteStateMachine_t *)pxArg) || bCancel;
-}
-
-uint8_t bFsmCoroutineInit(Coroutine_t *pxCoR, FiniteStateMachine_t *pxFsm, const FsmTransition_t *apxTransitions[], void *pxContext) {
-    if(bFsmInit(pxFsm, apxTransitions, pxContext)) {
-        vCoroutineAdd(pxCoR, &_bFsmCoroutine, pxFsm);
-        return CL_TRUE;
-    }
-    return CL_FALSE;
-}
-
 uint8_t bFsmValid(FiniteStateMachine_t *pxFsm) {
     _FiniteStateMachine_t *fsm = (_FiniteStateMachine_t *)pxFsm;
     return (pxFsm != libNULL) && (fsm->apxTransitions != libNULL);
 }
 
-uint8_t bFsmRun(FiniteStateMachine_t *pxFsm, Coroutine_t *pxCoR) {
-    if(bFsmValid(pxFsm) && pxCoR) {
-        vCoroutineSetContext(pxCoR, pxFsm);
-        vCoroutineSetHandler(pxCoR, &_bFsmCoroutine);
-        return CL_TRUE;
+static void _vFsmProcessEvent(_FiniteStateMachine_t *pxFsm, FsmEvent_t eEvent) {
+    const FsmTransition_t *t = pxFsm->apxTransitions[0];
+    while(t != libNULL) {
+        if ((!t->pfFromState || (t->pfFromState == pxFsm->pfCurrentState)) && (t->eEvent == eEvent)) {
+            fsm_log_push(pxFsm);
+            pxFsm->pfCurrentState = t->pfToState;
+            break;
+        }
+        t++;
     }
-    return CL_FALSE;
 }
 
+void vFsmExternalEvent(FiniteStateMachine_t* pxFsm, FsmEvent_t eEvent) {
+    _FiniteStateMachine_t *fsm = (_FiniteStateMachine_t *)pxFsm;
+    _vFsmProcessEvent(fsm, eEvent);
+}
 
 uint8_t bFsmProcess(FiniteStateMachine_t* pxFsm) {
     _FiniteStateMachine_t *fsm = (_FiniteStateMachine_t *)pxFsm;
     if (!pxFsm || (fsm->pfCurrentState == FSM_STATE_EXIT))
         return CL_FALSE;
-    
     FsmEvent_t generated_event = fsm->pfCurrentState(fsm->pxContext);
-
     fsm_log(fsm, generated_event);
-
-    if (generated_event != EVENT_NONE) {
-        const FsmTransition_t *t = fsm->apxTransitions[0];
-        while(t != libNULL) {
-            if ((t->pfFromState == fsm->pfCurrentState) && (t->eEvent == generated_event)) {
-                fsm_log_push(fsm);
-                fsm->pfCurrentState = t->pfToState;
-                break;
-            }
-            t++;
-        }
-    }
-
+    if (generated_event != EVENT_NONE) 
+        _vFsmProcessEvent(fsm, generated_event);
     return CL_TRUE;
 }
 
@@ -128,12 +109,9 @@ uint8_t fsm_set_transition_log(finite_state_machine_t *fsm, fsm_transition_log_t
 #endif
 uint8_t fsm_init(finite_state_machine_t* fsm, const fsm_transition_t **transitions, void *context) 
                                                         __attribute__ ((alias ("bFsmInit")));
-uint8_t fsm_run(finite_state_machine_t *fsm, coroutine_t *cor)
-                                                        __attribute__ ((alias ("bFsmRun")));
-
-uint8_t fsm_coroutine_init(coroutine_t *cor, finite_state_machine_t* fsm, const fsm_transition_t *transitions[], void *context)
-                                                        __attribute__ ((alias ("bFsmCoroutineInit")));
 
 uint8_t fsm_valid(finite_state_machine_t* fsm)          __attribute__ ((alias ("bFsmValid")));
 uint8_t fsm_reset(finite_state_machine_t* fsm)          __attribute__ ((alias ("bFsmReset")));
 uint8_t fsm_process(finite_state_machine_t* fsm)        __attribute__ ((alias ("bFsmProcess")));
+void fsm_external_event(finite_state_machine_t* pxFsm, fsm_event_t event)
+                                                        __attribute__ ((alias ("vFsmExternalEvent")));

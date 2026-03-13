@@ -18,10 +18,10 @@
     } SomeFsmEvents_t;
 
     const FsmTransition_t *apxFsmTransitions[] = {
-        &(const FsmTransition_t) {idle,    EVENT_START,    running},
+        &(const FsmTransition_t) {NULL,    EVENT_START,    running},
         &(const FsmTransition_t) {running, EVENT_COMPLETE, FSM_STATE_EXIT},
         &(const FsmTransition_t) {running, EVENT_ERROR,    error},
-        &(const FsmTransition_t) {error,   EVENT_RESET,    idle},
+        &(const FsmTransition_t) {error,   EVENT_RESET,    NULL},
         (const FsmTransition_t *) NULL
     };
 
@@ -98,24 +98,6 @@ uint8_t bFsmSetTransitionLog(FiniteStateMachine_t *pxFsm, FsmTransitionLog_t *px
 uint8_t bFsmInit(FiniteStateMachine_t* pxFsm, const FsmTransition_t **apxTransitions, void *pxContext);
 
 /*!
-	@brief Run finite state machine with in coriutine
-	@param[in] pxFsm            FSM descriptor buffer
-	@param[in] pxCoR            Runing coroutine descriptor
-	@return !0 if init ok
-*/
-uint8_t bFsmRun(FiniteStateMachine_t* pxFsm, Coroutine_t *pxCoR);
-
-/*!
-	@brief Initialize finite state machine and run as coroutine
-	@param[in] pxCoR            Coroutine descriptor buffer
-	@param[in] pxFsm            FSM descriptor buffer
-	@param[in] apxTransitions   Transitions graph
-	@param[in] pxContext        FSM handlers context
-	@return !0 if init ok
-*/
-uint8_t bFsmCoroutineInit(Coroutine_t *pxCoR, FiniteStateMachine_t *pxFsm, const FsmTransition_t *apxTransitions[], void *pxContext);
-
-/*!
 	@brief Restart finite state machine if it is finished
 	@param[in] pxFsm            FSM descriptor buffer
 	@return !0 if restarted
@@ -127,7 +109,7 @@ uint8_t bFsmReset(FiniteStateMachine_t* pxFsm);
 	@param[in] pxFsm            FSM descriptor
 	@return !0 if ok
 */
-uint8_t bFsmValid(FiniteStateMachine_t* pxFsm);
+uint8_t bFsmIsValid(FiniteStateMachine_t* pxFsm);
 
 /*!
 	@brief Do FSM cycle
@@ -135,6 +117,13 @@ uint8_t bFsmValid(FiniteStateMachine_t* pxFsm);
 	@return !0 while process ongoing
 */
 uint8_t bFsmProcess(FiniteStateMachine_t* pxFsm);
+
+/*!
+	@brief Send Event to FSM
+	@param[in] pxFsm            FSM descriptor
+	@param[in] eEvent           Transitions event 
+*/
+void vFsmExternalEvent(FiniteStateMachine_t* pxFsm, FsmEvent_t eEvent);
 
 /*!
   Snake notation
@@ -152,14 +141,10 @@ uint8_t fsm_set_transition_log(finite_state_machine_t *fsm, fsm_transition_log_t
 #endif
 
 uint8_t fsm_init(finite_state_machine_t* fsm, const fsm_transition_t *transitions[], void *context);
-
-uint8_t fsm_run(finite_state_machine_t* fsm, coroutine_t *cor);
-uint8_t fsm_coroutine_init(coroutine_t *cor, finite_state_machine_t* fsm, const fsm_transition_t *transitions[], void *context);
-
 uint8_t fsm_reset(finite_state_machine_t* fsm);
-uint8_t fsm_valid(finite_state_machine_t* fsm);
-
+uint8_t fsm_is_valid(finite_state_machine_t* fsm);
 uint8_t fsm_process(finite_state_machine_t* fsm);
+void fsm_external_event(finite_state_machine_t* pxFsm, fsm_event_t event);
 
 #ifdef __cplusplus
 }
