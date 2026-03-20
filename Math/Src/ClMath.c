@@ -43,7 +43,7 @@ uint32_t ulArrayMedian(uint32_t aulArr[], uint32_t ulLen) {
   return aulArr[0];
 }
 
-void vDecimal32Mull(decimal32_t *pdX, uint32_t ulFactor) {
+void vDecimal32Mull(decimal32_t *pdX, int32_t ulFactor) {
   if(pdX->denom && ulFactor) {
     uint32_t y = gcd(pdX->denom, ulFactor);
     if(y > 1) {
@@ -54,7 +54,7 @@ void vDecimal32Mull(decimal32_t *pdX, uint32_t ulFactor) {
   pdX->num *= ulFactor;
 }
 
-void vDecimal32Div(decimal32_t *pdX, uint32_t ulFactor) {
+void vDecimal32Div(decimal32_t *pdX, int32_t ulFactor) {
   if(pdX->num && ulFactor) {
     uint32_t y = gcd(pdX->num, ulFactor);
     pdX->num /= y;
@@ -65,6 +65,6 @@ void vDecimal32Div(decimal32_t *pdX, uint32_t ulFactor) {
 
 int32_t gcd(int32_t, int32_t) __attribute__ ((alias ("lGcd")));
 uint32_t array_median(uint32_t [], uint32_t) __attribute__ ((alias ("ulArrayMedian")));
-void decimal32_mull(decimal32_t *, uint32_t) __attribute__ ((alias ("vDecimal32Mull")));
-void decimal32_div(decimal32_t *, uint32_t) __attribute__ ((alias ("vDecimal32Div")));
+void decimal32_mull(decimal32_t *, int32_t) __attribute__ ((alias ("vDecimal32Mull")));
+void decimal32_div(decimal32_t *, int32_t) __attribute__ ((alias ("vDecimal32Div")));
 
