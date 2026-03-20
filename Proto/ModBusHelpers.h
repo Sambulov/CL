@@ -104,7 +104,7 @@ static inline void vModbusInitFrameWriteOutput(ModbusFrame_t *pxOutFrame, uint8_
 static inline void vModbusInitFrameWriteHolding(ModbusFrame_t *pxOutFrame, uint8_t ucDevAddr, uint16_t usRegAddr, uint16_t usValue) {
 	if(pxOutFrame == libNULL) return;
 	vModbusInitFrameReadOutputs(pxOutFrame, ucDevAddr, usRegAddr, usValue);
-	pxOutFrame->ucFunc = MB_FUNC_WRITE_OUTPUT;
+	pxOutFrame->ucFunc = MB_FUNC_WRITE_HOLDING;
 }
 
 /*!
