@@ -22,6 +22,5 @@ void event_subscribe(event_t *event, delegate_t *delegate);
 void event_unsubscribe(delegate_t *delegate);
 uint32_t event_raise(event_t *event, void *sender, void *event_trigger);
 void event_clear(event_t *event);
-uint32_t event_raise_clear(event_t *event, void *sender, void *event_trigger);
 
 #endif // CL_EVENT_H_

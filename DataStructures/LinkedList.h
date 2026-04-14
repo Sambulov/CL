@@ -40,7 +40,8 @@ static inline void *__LinkedListCalcObjPtr(size_t llOffset, void *llPtr) { retur
 	}
 	void vLinkedListUnlink(LinkedListItem_t *pxItem);
 	uint32_t ulLinkedListCount(LinkedList_t xList, LinkedListMatch_t pfMatch, void *pxMatchArg);
-	void vLinkedListClear(LinkedList_t xList);
+	void vLinkedListClear(LinkedList_t *xList);
+	void vLinkedListClearItemList(LinkedListItem_t *pxItem);
 	uint8_t bLinkedListContains(LinkedList_t xList, LinkedListItem_t *pxItem);
 
 /*!
@@ -66,7 +67,8 @@ void linked_list_insert(linked_list_t *linked_list_ptr, linked_list_item_t *item
 void linked_list_insert_last(linked_list_t *linked_list_ptr, linked_list_item_t *item);
 void linked_list_unlink(linked_list_item_t *item);
 uint32_t linked_list_count(linked_list_t linked_list, linked_list_match_t match_fn, void *search_args);
-void linked_list_clear(LinkedList_t *linked_list_ptr);
+void linked_list_clear(linked_list_t *linked_list_ptr);
+void linked_list_clear_item_list(linked_list_item_t *item);
 uint8_t linked_list_contains(linked_list_t linked_list, linked_list_item_t *item);
 
 #ifdef __cplusplus
