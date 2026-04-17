@@ -277,7 +277,7 @@ static int32_t _lPrintfPrintString(PrintfWriter_t pfWriter, void *pxWrContext, u
 	while (stage < 4) {
 		switch (stage) {
 			case 0:
-			case 3: result = _lFillWith(pfWriter, pxWrContext, lWidth, ' '); break;
+			case 3: result = _lFillWith(pfWriter, pxWrContext, ' ', lWidth); break;
 			case 1: stage = 3;
 				/* fall through */
 			case 2: result = _lWriteStr(pfWriter, pxWrContext, pcString); break;
