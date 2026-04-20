@@ -49,9 +49,12 @@ static inline int32_t _lFillWith(PrintfWriter_t pfWriter, void *pxWrContext, uin
 	return res;
 }
 
-static inline int32_t _lWriteStr(PrintfWriter_t pfWriter, void *pxWrContext, uint8_t *str) {
-	uint32_t __len__ = 0; 
-	while(str[__len__] != '\0') __len__++; 
+static inline int32_t _lWriteStrn(PrintfWriter_t pfWriter, void *pxWrContext, uint8_t *str, int32_t len) {
+	uint32_t __len__ = len; 
+	if(len < 0) {
+		__len__ = 0;
+		while(str[__len__] != '\0') __len__++; 
+	}
 	return pfWriter(pxWrContext, str++, __len__);
 }
 
@@ -280,7 +283,7 @@ static int32_t _lPrintfPrintString(PrintfWriter_t pfWriter, void *pxWrContext, u
 			case 3: result = _lFillWith(pfWriter, pxWrContext, ' ', lWidth); break;
 			case 1: stage = 3;
 				/* fall through */
-			case 2: result = _lWriteStr(pfWriter, pxWrContext, pcString); break;
+			case 2: result = _lWriteStrn(pfWriter, pxWrContext, pcString, strLength); break;
 			default: result = 0; break;
 		}
 		if (result < 0) return result;
@@ -495,7 +498,7 @@ static int32_t _lPrintFloat(PrintfWriter_t pfWriter, void *pxWrContext, float fp
 					result++;
 				}
 			}
-			else result = _lWriteStr(pfWriter, pxWrContext, value);
+			else result = _lWriteStrn(pfWriter, pxWrContext, value, -1);
 			filler = ' ';
 			break;
 		case 4:	/* print exponent */
@@ -595,7 +598,7 @@ static int32_t _lPrintInteger(PrintfWriter_t pfWriter, void *pxWrContext, uint64
 				break;
 			case 1:
 				if (!(ulOptions & PRINTF_TYPE_UNSIGNED_NO_PREFIX) && prefix[0] != '\0') 
-					result = _lWriteStr(pfWriter, pxWrContext, prefix);
+					result = _lWriteStrn(pfWriter, pxWrContext, prefix, -1);
 				break;
 			case 2:
 				if (lPrecision > 0) result = _lFillWith(pfWriter, pxWrContext, '0', lPrecision);
