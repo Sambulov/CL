@@ -76,11 +76,11 @@ uint8_t bFsmValid(FiniteStateMachine_t *pxFsm) {
 }
 
 static void _vFsmProcessEvent(_FiniteStateMachine_t *pxFsm, FsmEvent_t eEvent) {
-    const FsmTransition_t *t = pxFsm->apxTransitions[0];
-    while(t != libNULL) {
-        if ((!t->pfFromState || (t->pfFromState == pxFsm->pfCurrentState)) && (t->eEvent == eEvent)) {
+    const FsmTransition_t **t = pxFsm->apxTransitions;
+    while((*t) != libNULL) {
+        if ((!(*t)->pfFromState || ((*t)->pfFromState == pxFsm->pfCurrentState)) && ((*t)->eEvent == eEvent)) {
             fsm_log_push(pxFsm);
-            pxFsm->pfCurrentState = t->pfToState;
+            pxFsm->pfCurrentState = (*t)->pfToState;
             break;
         }
         t++;
