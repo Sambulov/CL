@@ -23,4 +23,9 @@ void event_unsubscribe(delegate_t *delegate);
 uint32_t event_raise(event_t *event, void *sender, void *event_trigger);
 void event_clear(event_t *event);
 
+static inline void call_delegate(delegate_t *delegate, void *sender, void *event_trigger) {
+  if(delegate && delegate->handler)
+    delegate->handler(event_trigger, sender, delegate->context);
+}
+
 #endif // CL_EVENT_H_

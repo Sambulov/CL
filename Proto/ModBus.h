@@ -147,7 +147,6 @@ typedef struct {
 	void *pxTimerContext;                      /* Context for pfTimer */
 	uint8_t *pucPayLoadBuffer;                 /* Modbus payload buffer */
 	uint8_t ucPayLoadBufferSize;               /* Modbus payload buffer size */
-	uint16_t rx_timeout;                       /* Receive timeout in interface timer time units */
 	uint16_t tx_timeout;                       /* Transmit timeout in interface timer time units */
 	uint8_t bAsciiMode : 1,                    /* Modbus mode: 0 - RTU, 1 - ASCII */
 	        bPduMode   : 1;                    /* Modbus RTU mode: 0 - ADU, 1 - PDU */
@@ -181,9 +180,10 @@ uint8_t bModbusServerLinkEndpoints(Modbus_t *pxMb, const ModbusEndpoint_t *pxMbE
 	@param[in] pxFrame     Modbus frame to request. Could be destroyed after call.
 	@param[in] pfCallback  On request complete callback.
 	@param[in] pxCbContext Callback user context.
+	@param[in] ulTimeout   Responce timeout.
 	@return transfer ID if ok, 0 if fault
 */
-uint32_t ulModbusRequest(Modbus_t *pxMb, ModbusFrame_t *pxFrame, ModbusCb_t pfCallback, void *pxCbContext);
+uint8_t ulModbusRequest(Modbus_t *pxMb, ModbusFrame_t *pxFrame, ModbusCb_t pfCallback, void *pxCbContext, uint32_t ulTimeout);
 
 /*!
 	@brief Modbus server send response
@@ -191,15 +191,15 @@ uint32_t ulModbusRequest(Modbus_t *pxMb, ModbusFrame_t *pxFrame, ModbusCb_t pfCa
 	@param[in] pxFrame     Modbus frame to request. Could be destroyed after call.
 	@return transfer ID if ok, 0 if fault
 */
-uint32_t ulModbusResponse(Modbus_t *pxMb, ModbusFrame_t *pxFrame);
+uint8_t ulModbusResponse(Modbus_t *pxMb, ModbusFrame_t *pxFrame);
 
 /*!
 	@brief Modbus client cancel request
 	@param[in] pxMb         Modbus descriptor
-	@param[in] ulTransferId Modbus tx frame id.
+	@param[in] pxFrame      Modbus frame requested.
 	@return !0 if canceled
 */
-uint8_t bModbusCancelRequest(Modbus_t *pxMb, uint32_t ulTransferId);
+uint8_t bModbusCancelRequest(Modbus_t *pxMb, ModbusFrame_t *pxFrame);
 
 /*!
 	@brief Check if modbus busy
@@ -243,9 +243,9 @@ typedef ModbusIfaceTimer_t modbus_iface_timer_t;
 uint8_t modbus_init(modbus_t *, const modbus_config_t *);
 void modbus_work(modbus_t *);
 uint8_t modbus_server_link_endpoints(modbus_t *, const modbus_endpoint_t *);
-uint32_t modbus_response(modbus_t *, modbus_frame_t *);
-uint32_t modbus_request(modbus_t *, modbus_frame_t *, modbus_cb_t, void *);
-uint8_t modbus_cancel_request(modbus_t *, uint32_t);
+uint8_t modbus_response(modbus_t *, modbus_frame_t *);
+uint8_t modbus_request(modbus_t *, modbus_frame_t *, modbus_cb_t, void *, uint32_t);
+uint8_t modbus_cancel_request(modbus_t *, modbus_frame_t *);
 uint8_t modbus_busy(modbus_t *);
 uint8_t *modbus_frame_data(modbus_frame_t *, uint8_t *, uint8_t *, uint8_t *);
 
