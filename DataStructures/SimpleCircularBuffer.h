@@ -33,7 +33,7 @@ static inline int32_t usScbAvailable(SimpleCircularBuffer_t *pxBuf) {
 }
 
 static inline int32_t usScbAvailableFree(SimpleCircularBuffer_t *pxBuf) {
-  return pxBuf->usMax + pxBuf->usTail - pxBuf->usHead;
+  return (pxBuf->usTail - pxBuf->usHead - 1) & pxBuf->usMax;
 }
 
 static inline int32_t usScbNonSegmentedAvailable(SimpleCircularBuffer_t *pxBuf) {
