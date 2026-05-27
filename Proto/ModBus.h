@@ -14,8 +14,7 @@ extern "C" {
 #endif
 
 #define MODBUS_ERROR_FLAG                   0x80
-
-#define MODBUS_DESCRIPTOR_SIZE              64
+#define MODBUS_DESCRIPTOR_SIZE              56
 
 typedef struct {
 	CL_PRIVATE(MODBUS_DESCRIPTOR_SIZE);
@@ -96,60 +95,53 @@ typedef enum {
 	MB_FUNC_WRITE_HOLDINGS       = 0x10  /* Write multiple analog outputs, modbus holding registers */
 } ModbusFunctionCode_t;
 
+typedef enum {
+    MB_STATE_UNDEF,
+    MB_STATE_IDLE,      /* client: no active request */
+    MB_STATE_SENDING,   /* client + server: iterative write via pfWrite */
+    MB_STATE_LISTENING, /* client + server: waiting for the first byte */
+    MB_STATE_RECEIVING, /* client + server: bytes arriving */
+    MB_STATE_RECEIVED,  /* client + server: bEnd received, ready to parse */
+    MB_STATE_HANDLING,  /* server: handler called, waiting for ulModbusResponse */
+} ModbusState_t;
+
 typedef struct {
 	uint8_t ucAddr;           /* Device address on bus */
 	uint8_t ucFunc;           /* Function number */
 	uint16_t usRegAddr;       /* Register address */
 	uint16_t usRegValueCount; /* Register value or amount */
 	uint8_t ucLengthCode;     /* Data length next or function code response or error */
-	uint8_t ucBufferSize;     /* For server response capability, payload buffer available */
 	uint8_t *pucData;         /* Frame payload */
 } ModbusFrame_t;
 
-/*!
-	@brief Modbus callback function. Responce client. Handler for server.
-	@param[in] pxMb        Modbus descriptor
-	@param[in] pxContext   User callback context
-	@param[in] pxFrame     Frame received, also used for server responce.
-	                       User may use payload buffer to place response data or attach own.
-*/
-typedef void (*ModbusCb_t)(Modbus_t *pxMb, void *pxContext, ModbusFrame_t *pxFrame);
-
-typedef struct {
-	uint8_t ucFunctionNo;      /* Modbus function number */
-    ModbusCb_t pfOnRequest;    /* Modbus func hundler */
-	void *pxContext;           /* Handler context */
-} ModbusHandler_t;
-
-typedef struct MBEP_t ModbusEndpoint_t;
-
-struct MBEP_t {
-	uint8_t ucAddress;                         /* Address the modbus server to be responsible to. 0 - broadcast */
-	uint8_t ucAddressMask;                     /* Address compared as ucReqAddr & ucAddressMask == ucAddress */
-	const ModbusHandler_t *const *paxHandlers; /* Modbus request handlers */
-	const ModbusEndpoint_t *pxNext;            /* Next endpoint (additional server addresses) */
-};
-
-typedef int32_t (*ModbusIfaceRead_t)(void *pxPhy, uint8_t *pucBuf, uint16_t ulSize);
 typedef int32_t (*ModbusIfaceWrite_t)(void *pxPhy, const uint8_t *pucBuf, uint16_t ulSize);
 typedef uint32_t (*ModbusIfaceTimer_t)(const void *pxTimerPhy);
+typedef void (*ModbusCb_t)(ModbusFrame_t *pxFrame, Modbus_t *pxMb, void *pxContext);
 
 typedef struct {
-	ModbusIfaceRead_t pfRead;                  /* Method to receive data */
 	ModbusIfaceWrite_t pfWrite;                /* Method to send data */
 	ModbusIfaceTimer_t pfTimer;                /* Method to get timestamp */
 } ModbusIface_t;
 
+typedef enum {
+    MB_MODE_PDU     = 0x00,
+    MB_MODE_RTU     = 0x01,
+    MB_MODE_ASCII   = 0x02,
+    MB_MODE_TCP_UDP = 0x03
+} ModbusMode_t;
+
 typedef struct {
-	const ModbusIface_t *pxIface;              /* Modbus extern interface  */
-	void *pxTxContext;                         /* Context for pfWrite */
-	void *pxRxContext;                         /* Context for pfRead */
-	void *pxTimerContext;                      /* Context for pfTimer */
-	uint8_t *pucPayLoadBuffer;                 /* Modbus payload buffer */
-	uint8_t ucPayLoadBufferSize;               /* Modbus payload buffer size */
-	uint16_t tx_timeout;                       /* Transmit timeout in interface timer time units */
-	uint8_t bAsciiMode : 1,                    /* Modbus mode: 0 - RTU, 1 - ASCII */
-	        bPduMode   : 1;                    /* Modbus RTU mode: 0 - ADU, 1 - PDU */
+    const ModbusIface_t *pxIface;    /* Modbus extern interface  */
+    void *pxTxContext;               /* Context for pfWrite */
+    void *pxTimerContext;            /* Context for pfTimer */
+    void *pxRequestContext;          /* Context for pfOnRequest */
+    uint8_t *pucPayLoadBuffer;       /* Modbus payload buffer */
+    uint16_t ucPayLoadBufferSize;    /* Modbus payload buffer size */
+    uint16_t usTxTimeout;             /* Transmit timeout in interface timer time units */
+    uint16_t usRxTimeout;             /* Receiving timeout for server capability */
+    ModbusMode_t eMode;              /* Modbus parser mode */
+    uint8_t bIsServer;
+	ModbusCb_t pfOnRequest;          /* Modbus server on request callback */
 } ModbusConfig_t;
 
 /*!
@@ -167,14 +159,6 @@ uint8_t bModbusInit(Modbus_t *pxMb, const ModbusConfig_t *pxConfig);
 void vModbusWork(Modbus_t *pxMb);
 
 /*!
-	@brief Link modbus server hadlers endpoints
-	@param[in] pxMb        Modbus descriptor
-	@param[in] pxMbEp      Modbus server endpoints list
-	@return !0 if ok, server started
-*/
-uint8_t bModbusServerLinkEndpoints(Modbus_t *pxMb, const ModbusEndpoint_t *pxMbEp);
-
-/*!
 	@brief Modbus client send request
 	@param[in] pxMb        Modbus descriptor
 	@param[in] pxFrame     Modbus frame to request. Could be destroyed after call.
@@ -183,7 +167,7 @@ uint8_t bModbusServerLinkEndpoints(Modbus_t *pxMb, const ModbusEndpoint_t *pxMbE
 	@param[in] ulTimeout   Responce timeout.
 	@return transfer ID if ok, 0 if fault
 */
-uint8_t ulModbusRequest(Modbus_t *pxMb, ModbusFrame_t *pxFrame, ModbusCb_t pfCallback, void *pxCbContext, uint32_t ulTimeout);
+uint16_t usModbusRequest(Modbus_t *pxMb, ModbusFrame_t *pxFrame, ModbusCb_t pfCallback, void *pxCbContext, uint16_t ulTimeout);
 
 /*!
 	@brief Modbus server send response
@@ -191,15 +175,14 @@ uint8_t ulModbusRequest(Modbus_t *pxMb, ModbusFrame_t *pxFrame, ModbusCb_t pfCal
 	@param[in] pxFrame     Modbus frame to request. Could be destroyed after call.
 	@return transfer ID if ok, 0 if fault
 */
-uint8_t ulModbusResponse(Modbus_t *pxMb, ModbusFrame_t *pxFrame);
+uint16_t usModbusResponse(Modbus_t *pxMb, ModbusFrame_t *pxFrame);
 
 /*!
-	@brief Modbus client cancel request
+	@brief Modbus reset state
 	@param[in] pxMb         Modbus descriptor
-	@param[in] pxFrame      Modbus frame requested.
-	@return !0 if canceled
+	@return !0 if reseted
 */
-uint8_t bModbusCancelRequest(Modbus_t *pxMb, ModbusFrame_t *pxFrame);
+uint8_t bModbusReset(Modbus_t *pxMb);
 
 /*!
 	@brief Check if modbus busy
@@ -209,15 +192,20 @@ uint8_t bModbusCancelRequest(Modbus_t *pxMb, ModbusFrame_t *pxFrame);
 uint8_t bModbusBusy(Modbus_t *pxMb);
 
 /*!
-	@brief Extruct frame data
-	@param[in] pxFrame			Frame buffer
-	@param[out] pucCode         Returned code or error
-	@param[out] pucOutAmount    Registers amount
-	@param[out] pucOutSize      Data entity size (1 or 2 bytes)
-	@return pointer to buffer if data present
+	@brief Push data to Modbus stack
+	@param[in] pxMb        Modbus descriptor
+	@param[in] pucData     Frame fragment data
+	@param[in] usLen       Fragment length
+	@param[in] bEnd        Is last fragment
 */
-uint8_t *pucModbusResponseFrameData(ModbusFrame_t *pxFrame, uint8_t *pucCode, uint8_t *pucOutAmount, uint8_t *pucOutSize);
+void vModbusReceiveData(Modbus_t *pxMb, const uint8_t *pucData, uint16_t usLen, uint8_t bEnd);
 
+/*!
+	@brief Get current modbus FSM state
+	@param[in] pxMb        Modbus descriptor
+	@return current modbus state
+*/
+ModbusState_t vModbusGetState(Modbus_t *pxMb);
 
 static inline uint8_t bModbusIsErrorFrame(ModbusFrame_t *pxFrame) {
     return ((pxFrame == libNULL) || ((pxFrame->ucFunc & MODBUS_ERROR_FLAG) != 0));
@@ -229,25 +217,24 @@ static inline uint8_t bModbusIsErrorFrame(ModbusFrame_t *pxFrame) {
 
 typedef Modbus_t modbus_t;
 typedef ModbusConfig_t modbus_config_t;
-typedef ModbusEndpoint_t modbus_endpoint_t;
 typedef ModbusFrame_t modbus_frame_t;
 typedef ModbusCb_t modbus_cb_t;
 typedef ModbusErrorCode_t modbus_error_code_t;
-typedef ModbusHandler_t modbus_handler_t;
 typedef ModbusIface_t modbus_iface_t;
-
-typedef ModbusIfaceRead_t modbus_iface_read_t;
 typedef ModbusIfaceWrite_t modbus_iface_write_t;
 typedef ModbusIfaceTimer_t modbus_iface_timer_t;
+typedef ModbusMode_t modbus_mode_t;
+typedef ModbusState_t modbus_state_t;
 
 uint8_t modbus_init(modbus_t *, const modbus_config_t *);
 void modbus_work(modbus_t *);
-uint8_t modbus_server_link_endpoints(modbus_t *, const modbus_endpoint_t *);
-uint8_t modbus_response(modbus_t *, modbus_frame_t *);
-uint8_t modbus_request(modbus_t *, modbus_frame_t *, modbus_cb_t, void *, uint32_t);
-uint8_t modbus_cancel_request(modbus_t *, modbus_frame_t *);
+uint16_t modbus_response(modbus_t *, modbus_frame_t *);
+uint16_t modbus_request(modbus_t *, modbus_frame_t *, modbus_cb_t, void *, uint16_t);
+uint8_t modbus_reset(modbus_t *);
 uint8_t modbus_busy(modbus_t *);
 uint8_t *modbus_frame_data(modbus_frame_t *, uint8_t *, uint8_t *, uint8_t *);
+void modbus_receive_data(modbus_t *, const uint8_t *, uint16_t, uint8_t);
+modbus_state_t modbus_get_state(modbus_t *);
 
 static inline uint8_t modbus_is_error_frame(modbus_frame_t *)  __attribute__ ((alias ("bModbusIsErrorFrame")));
 

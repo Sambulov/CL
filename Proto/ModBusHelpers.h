@@ -157,6 +157,30 @@ static inline void vModbusInitFrameError(ModbusFrame_t *pxOutFrame, uint8_t ucDe
     pxOutFrame->ucLengthCode = eErr;
 }
 
+/*!
+	@brief Init frame structure for error response
+	@param[out] pxOutFrame			Frame buffer
+	@param[in] ucDevAddr            Modbus device address
+	@param[in] ucFunc               Modbus function
+	@param[in] eErr                 Error code
+*/
+static inline void vModbusFrame2Error(ModbusFrame_t *pxOutFrame, ModbusErrorCode_t eErr) {
+	if(pxOutFrame == libNULL) return;
+	pxOutFrame->ucFunc |= MODBUS_ERROR_FLAG;
+    pxOutFrame->ucLengthCode = eErr;
+}
+
+/*!
+	@brief Extruct frame data
+	@param[in] pxFrame			Frame buffer
+	@param[out] pucOutCode      Returned code or error
+	@param[out] pucOutAmount    Registers amount
+	@param[out] pucOutSize      Data entity size (1 or 2 bytes)
+	@return pointer to buffer if data present
+*/
+uint8_t *pucModbusExtructFrameData(ModbusFrame_t *pxFrame, uint8_t *pucOutCode, uint8_t *pucOutAmount, uint8_t *pucOutSize);
+
+
 //typedef uint8_t (*ReadDiscreteHandler_t)(uint16_t usAddr);
 //typedef uint16_t (*ReadRegisterHandler_t)(uint16_t usAddr);
 //typedef void (*WriteRegisterHandler_t)(uint16_t usAddr, uint16_t usValue);
@@ -185,6 +209,12 @@ static inline void modbus_init_frame_write_holdings(modbus_frame_t *, uint8_t, u
     __attribute__ ((alias ("vModbusInitFrameWriteHoldings")));
 static inline void modbus_init_frame_error(modbus_frame_t *, uint8_t, uint8_t, modbus_error_code_t)
     __attribute__ ((alias ("vModbusInitFrameError")));
+
+static inline void modbus_frame_2_error(modbus_frame_t *, modbus_error_code_t)
+    __attribute__ ((alias ("vModbusFrame2Error")));
+
+
+uint8_t *modbus_extruct_frame_data(modbus_frame_t *frame, uint8_t *out_code, uint8_t *out_amount, uint8_t *out_size);
 
 #ifdef __cplusplus
 }
