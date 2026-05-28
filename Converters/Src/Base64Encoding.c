@@ -1,12 +1,12 @@
 #include "CodeLib.h"
 
-static const int8_t encodeTable[64] = {
+static const uint8_t encodeTable[64] = {
 	'A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P',
 	'Q','R','S','T','U','V','W','X','Y','Z','a','b','c','d','e','f',
 	'g','h','i','j','k','l','m','n','o','p','q','r','s','t','u','v',
 	'w','x','y','z','0','1','2','3','4','5','6','7','8','9','+','/'
 };
-static const int8_t decodeTable[80] = {
+static const uint8_t decodeTable[80] = {
                                                 62, -1, -1, -1, 63,
     52, 53, 54, 55, 56, 57, 58, 59, 60, 61, -1, -1, -1, 00, -1, -1,
     -1,  0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11, 12, 13, 14,
@@ -42,12 +42,12 @@ int32_t lBase64Decode(uint8_t *pucOutData, uint32_t ulSize, const uint8_t *pucBa
 		return -1;
 	int32_t bufIndex = 0;
 	uint8_t left = 0;
-	int8_t sextet;
+	uint8_t sextet;
 	for (uint32_t i = 0; i < ulLength; i++) {
 	    sextet = pucBase64[i];
 		if (((i & 3) >= 2) && pucOutData[i] == '=')
 			break;
-		if ((sextet < 43) || (sextet > 122) || ((sextet = decodeTable[sextet - 43]) < 0))
+		if ((sextet < 43) || (sextet > 122) || ((sextet = decodeTable[sextet - 43]) >= 64))
 			return -1;
 		pucOutData[bufIndex] = left;
 		pucOutData[bufIndex] |= sextet >> dataShift[i & 3];
