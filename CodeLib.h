@@ -61,6 +61,7 @@ typedef void** cl_tuple_t;
 #include "DataStructures/Mem.h"
 #include "DataStructures/MedianFilter.h"
 #include "Crypto/Crc.h"
+#include "Crypto/Hash.h"
 #include "Binary/BitOp.h"
 #include "Converters/StringConverter.h"
 #include "Converters/CharsetEncoding.h"

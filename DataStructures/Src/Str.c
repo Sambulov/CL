@@ -188,7 +188,7 @@ int32_t lLongToStr(char *pcBufer, int32_t lValue) {
 	return count;
 }
 
-int32_t lStrToLong(uint32_t *pulValue, char *pcStrValue, uint8_t ucBase) {
+int32_t lStrToLong(uint32_t *pulValue, const char *pcStrValue, uint8_t ucBase) {
 	if ((ucBase != 2) && (ucBase != 8) && (ucBase != 10) && (ucBase != 16)) return 0; 
 	int32_t result = 0;
 	if (pcStrValue != libNULL) {
@@ -256,6 +256,6 @@ int32_t str_src(const char *str1, const char *str2) __attribute__ ((alias ("lStr
 int32_t strn_src(const char *str1, int32_t length, const char *str2) __attribute__ ((alias ("lStrnSrc")));
 int32_t strn_src_last(const char *str1, int32_t length, const char *str2) __attribute__ ((alias ("lStrnSrcLast")));
 int32_t long_to_str(char *bufer, int32_t value) __attribute__ ((alias ("lLongToStr")));
-int32_t str_to_long(uint32_t *value, char *str_value, uint8_t base) __attribute__ ((alias ("lStrToLong")));
+int32_t str_to_long(uint32_t *value, const char *str_value, uint8_t base) __attribute__ ((alias ("lStrToLong")));
 void str_to_lower_case(char *str) __attribute__ ((alias ("vStrToLowerCase")));
 void str_to_upper_case(char *str) __attribute__ ((alias ("vStrToUpperCase")));

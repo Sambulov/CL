@@ -133,7 +133,7 @@ int32_t lLongToStr(char* pcBufer, int32_t lValue);
     @param[in] ucBase      Notation (2,8,10,16)
     @return Characters parced
  */
-int32_t lStrToLong(uint32_t *plOutValue, char *pcStrValue, uint8_t ucBase);
+int32_t lStrToLong(uint32_t *plOutValue, const char *pcStrValue, uint8_t ucBase);
 
 /*!
     @brief Convert string to lower case
@@ -261,7 +261,7 @@ int32_t long_to_str(char *bufer, int32_t value);
     @param[in] base      
     @return Characters parced
  */
-int32_t str_to_long(uint32_t *value, char *str_value, uint8_t base);
+int32_t str_to_long(uint32_t *value, const char *str_value, uint8_t base);
 
 /*!
     @brief Convert string to lower case
