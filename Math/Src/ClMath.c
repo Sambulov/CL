@@ -49,7 +49,15 @@ uint32_t ulArrayMedian(uint32_t aulArr[], uint32_t ulLen) {
   return aulArr[0];
 }
 
-decimal32_t dDecimal32Reduce(decimal32_t dX) {
+int32_t lDecimal32Round(decimal32_t dX, uint32_t ulDegree, int32_t lDefault) {
+  if(!bDecimal32Valid(dX)) 
+    return lDefault;
+  if(!dX.denom)
+    return (dX.num > 0)? (int32_t)(2147483647L): (int32_t)(-2147483648L);
+  return ((((int64_t)dX.num * ulDegree * 2) / dX.denom) + 1) / 2;
+}
+
+decimal32_t xDecimal32Reduce(decimal32_t dX) {
   if (!dX.denom) {
     if(dX.num >= 0)
         dX.num = 1;
@@ -65,7 +73,7 @@ decimal32_t dDecimal32Reduce(decimal32_t dX) {
   return (decimal32_t){ .num = dX.num / (int32_t)g, .denom = dX.denom / g };
 }
 
-static decimal32_t dDecimal32Reduce64(int64_t llNom, uint64_t ullDenom) {
+static decimal32_t xDecimal32Reduce64(int64_t llNom, uint64_t ullDenom) {
   uint8_t sign = llNom < 0;
   if(sign)
     llNom = -llNom;
@@ -79,9 +87,13 @@ static decimal32_t dDecimal32Reduce64(int64_t llNom, uint64_t ullDenom) {
     llNom = __INT32_MAX__;
   if(sign)
     llNom = -llNom;
-  return dDecimal32Reduce(
+  return xDecimal32Reduce(
     (decimal32_t){.num = (int32_t)llNom, .denom = (uint32_t)ullDenom}
   );
+}
+
+uint8_t bDecimal32Valid(decimal32_t dX) {
+  return dX.denom || dX.num;
 }
 
 int32_t lDecimal32Cmp(decimal32_t dX, decimal32_t dY) {
@@ -92,28 +104,28 @@ int32_t lDecimal32Cmp(decimal32_t dX, decimal32_t dY) {
   return 0;
 }
 
-decimal32_t dDecimal32Add(decimal32_t dX, decimal32_t dY) {
-  return dDecimal32Reduce64(
+decimal32_t xDecimal32Add(decimal32_t dX, decimal32_t dY) {
+  return xDecimal32Reduce64(
     (int64_t)dX.num * (int64_t)dY.denom + (int64_t)dY.num * (int64_t)dX.denom,
     (uint64_t)dX.denom * (uint64_t)dY.denom
   );
 }
 
-decimal32_t dDecimal32Sub(decimal32_t dX, decimal32_t dY) {
-  return dDecimal32Add(
+decimal32_t xDecimal32Sub(decimal32_t dX, decimal32_t dY) {
+  return xDecimal32Add(
     dX, 
     (decimal32_t){.num = -dY.num, .denom = dY.denom}
   );
 }
 
-decimal32_t dDecimal32Mul(decimal32_t dX, decimal32_t dY) {
-  return dDecimal32Reduce64(
+decimal32_t xDecimal32Mul(decimal32_t dX, decimal32_t dY) {
+  return xDecimal32Reduce64(
     (int64_t)dX.num * (int64_t)dY.num,
     (uint64_t)dX.denom * (uint64_t)dY.denom
   );
 }
 
-decimal32_t dDecimal32Div(decimal32_t dX, decimal32_t dY) {
+decimal32_t xDecimal32Div(decimal32_t dX, decimal32_t dY) {
   decimal32_t inv;
   if (dY.num >= 0) {
     inv.num = (int32_t)dY.denom;
@@ -122,36 +134,37 @@ decimal32_t dDecimal32Div(decimal32_t dX, decimal32_t dY) {
     inv.num = -(int32_t)dY.denom;
     inv.denom = (uint32_t)(-dY.num);
   }
-  return dDecimal32Mul(dX, inv);
+  return xDecimal32Mul(dX, inv);
 }
 
-decimal32_t dDecimal32FromInt(int32_t ulX) {
+decimal32_t xDecimal32FromInt(int32_t ulX) {
   return (decimal32_t){.num = ulX, .denom = 1};
 }
 
-
-decimal32_t dDecimal32VectorMul(const decimal32_t *aV1, const decimal32_t *aV2, uint32_t lLen) {
-  decimal32_t sum = dDecimal32FromInt(0);
+decimal32_t xDecimal32VectorMul(const decimal32_t *aV1, const decimal32_t *aV2, uint32_t lLen) {
+  decimal32_t sum = xDecimal32FromInt(0);
   for (uint32_t i = 0; i < lLen; i++)
-    sum = dDecimal32Add(sum, dDecimal32Mul(aV1[i], aV2[i]));
+    sum = xDecimal32Add(sum, xDecimal32Mul(aV1[i], aV2[i]));
   return sum;
 }
 
 void vDecimal32VectorSum(decimal32_t *aOut, decimal32_t dAlpha, const decimal32_t *aV1, decimal32_t dBeta, const decimal32_t *aV2, uint32_t lLen) {
   for (uint32_t i = 0; i < lLen; i++)
-    aOut[i] = dDecimal32Add(dDecimal32Mul(dAlpha, aV1[i]), dDecimal32Mul(dBeta, aV2[i]));
+    aOut[i] = xDecimal32Add(xDecimal32Mul(dAlpha, aV1[i]), xDecimal32Mul(dBeta, aV2[i]));
 }
 
 int32_t gcd(int32_t, int32_t) __attribute__ ((alias ("lGcd")));
 uint32_t array_median(uint32_t [], uint32_t) __attribute__ ((alias ("ulArrayMedian")));
 
-decimal32_t decimal32_from_int(int32_t) __attribute__ ((alias ("dDecimal32FromInt")));
+decimal32_t decimal32_from_int(int32_t) __attribute__ ((alias ("xDecimal32FromInt")));
+uint8_t decimal32_valid(decimal32_t) __attribute__ ((alias ("bDecimal32Valid")));
 int32_t decimal32_cmp(decimal32_t, decimal32_t) __attribute__ ((alias ("lDecimal32Cmp")));
-decimal32_t decimal32_reduce(decimal32_t) __attribute__ ((alias ("dDecimal32Reduce")));
-decimal32_t decimal32_add(decimal32_t, decimal32_t) __attribute__ ((alias ("dDecimal32Add")));
-decimal32_t decimal32_sub(decimal32_t, decimal32_t) __attribute__ ((alias ("dDecimal32Sub")));
-decimal32_t decimal32_mul(decimal32_t, decimal32_t) __attribute__ ((alias ("dDecimal32Mul")));
-decimal32_t decimal32_div(decimal32_t, decimal32_t) __attribute__ ((alias ("dDecimal32Div")));
+decimal32_t decimal32_reduce(decimal32_t) __attribute__ ((alias ("xDecimal32Reduce")));
+int32_t decimal32_round(decimal32_t, uint32_t, int32_t) __attribute__ ((alias ("lDecimal32Round")));
+decimal32_t decimal32_add(decimal32_t, decimal32_t) __attribute__ ((alias ("xDecimal32Add")));
+decimal32_t decimal32_sub(decimal32_t, decimal32_t) __attribute__ ((alias ("xDecimal32Sub")));
+decimal32_t decimal32_mul(decimal32_t, decimal32_t) __attribute__ ((alias ("xDecimal32Mul")));
+decimal32_t decimal32_div(decimal32_t, decimal32_t) __attribute__ ((alias ("xDecimal32Div")));
 
 
-decimal32_t decimal32_vector_mul(const decimal32_t *, const decimal32_t *, uint32_t) __attribute__ ((alias ("dDecimal32VectorMul")));
+decimal32_t decimal32_vector_mul(const decimal32_t *, const decimal32_t *, uint32_t) __attribute__ ((alias ("xDecimal32VectorMul")));
