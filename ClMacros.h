@@ -29,4 +29,6 @@
 #define CL_TO_BCD_BYTE(val)       ((uint8_t)((val % 10) | ((val / 10) % 10) << 4))
 #define CL_FROM_BCD_BYTE(bcd)     ((bcd & 0xf) + ((bcd >> 4) & 0xf) * 10)
 
+#define CL_SIZE_OF_ARRAY(arr)  (sizeof(arr) / sizeof(arr[0]))
+
 #endif //CODE_LIB_MACROS_H_INCLUDED
