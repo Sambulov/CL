@@ -104,7 +104,7 @@ static void _vPrintfParseFlags(const char* pcFormat, uint32_t *pulCursor, uint32
 	@param[in]xArgs				Pointer to format arguments
 	@return 0 or width if present
 */
-static int32_t _lPrintfParseWidth(const char* pcFormat, uint32_t *pulCursor, uint32_t *pulOptions, va_list xArgs) {
+static int32_t _lPrintfParseWidth(const char* pcFormat, uint32_t *pulCursor, uint32_t *pulOptions, va_list *xArgs) {
 	/* Width */
 	uint8_t symbol = pcFormat[*pulCursor];
 	int32_t width = 0;
@@ -113,7 +113,7 @@ static int32_t _lPrintfParseWidth(const char* pcFormat, uint32_t *pulCursor, uin
 	   even if the result is larger. */
 	if (symbol == '*') { /* The width is not specified in the format string, but as an additional integer value argument
 						    preceding the argument that has to be formatted. */
-		width = va_arg(xArgs, int);
+		width = va_arg(*xArgs, int);
 		if (width < 0) {
 			*pulOptions |= PRINTF_FLAG_ALIGNMENT_LEFT;
 			width = -width;
@@ -140,7 +140,7 @@ static int32_t _lPrintfParseWidth(const char* pcFormat, uint32_t *pulCursor, uin
 	@param[in]xArgs				Pointer to format arguments
 	@return 0 or precision if present
 */
-static int32_t _lPrintfParsePrecision(const char* pcFormat, uint32_t *pulCursor, uint32_t *pulOptions, va_list xArgs) {
+static int32_t _lPrintfParsePrecision(const char* pcFormat, uint32_t *pulCursor, uint32_t *pulOptions, va_list *xArgs) {
 	/* Precision */
 	uint8_t symbol = pcFormat[*pulCursor];
 	int32_t precision = 0;
@@ -160,7 +160,7 @@ static int32_t _lPrintfParsePrecision(const char* pcFormat, uint32_t *pulCursor,
 		symbol = pcFormat[*pulCursor];
 		if (symbol == '*') { /* The precision is not specified in the format string, but as an additional integer
 							    value argument preceding the argument that has to be formatted. */
-			precision = va_arg(xArgs, int32_t);
+			precision = va_arg(*xArgs, int32_t);
 			if (precision < 0) {
 				precision = 0;
 				*pulOptions &= ~PRINTF_PRECISION_PRESENT;
@@ -673,8 +673,8 @@ int32_t lClVPrintf(PrintfWriter_t pfWriter, void *pxWrContext, const char* pcFor
 				int32_t width, precision;
                 width = precision = options = 0;
                 _vPrintfParseFlags(pcFormat, &cursor, &options);
-                width = _lPrintfParseWidth(pcFormat, &cursor, &options, xArgs);
-                precision = _lPrintfParsePrecision(pcFormat, &cursor, &options, xArgs);
+                width = _lPrintfParseWidth(pcFormat, &cursor, &options, &xArgs);
+                precision = _lPrintfParsePrecision(pcFormat, &cursor, &options, &xArgs);
                 _vPrintfParseLength(pcFormat, &cursor, &options);
                 _vPrintfParseSpecifier(pcFormat, &cursor, &options);
                 if (!(options & PRINTF_TYPE_UNKNOWN)) { /* Format recognized, print parameter. Else unknown type, pass-through */
