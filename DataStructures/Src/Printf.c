@@ -723,49 +723,61 @@ int32_t lClVPrintf(PrintfWriter_t pfWriter, void *pxWrContext, const char* pcFor
 static int32_t lPfwStream(void *arg, uint8_t *data, uint32_t amount) {
 	uint8_t *buf = cl_tuple_get(arg, 0, uint8_t *);
 	uint32_t *len = cl_tuple_get(arg, 1, uint32_t *);
-	uint32_t *ptr = cl_tuple_get(arg, 2, uint32_t *);
+	uint32_t *iter = cl_tuple_get(arg, 2, uint32_t *);
 	uint32_t res = 0;
-	while((amount < res) && (ptr < len)) {
-		buf[*ptr] = *data++;
-		(*ptr)++;
+	while((amount > res) && (*iter < *len)) {
+		if(buf) 
+			buf[*iter] = *data++;
+		(*iter)++;
 		res++;
 	}
 	return res;
 }
 
-int32_t lClSnPrintInteger(uint8_t *ucBuf, uint32_t ulSize, uint64_t ullValue, PrintIntegerFlags_t eFlags) {
-	uint32_t offset = 0;
-	void *arg = cl_tuple_make(ucBuf, &ulSize, &offset);
-	lClPrintInteger(&lPfwStream, arg, ullValue, eFlags);
-	ucBuf[offset] = '\0';
-	return offset;
-}
-
-int32_t lClSnPrintFloat(uint8_t *ucBuf, uint32_t ulSize, float fpValue) {
-	uint32_t offset = 0;
-	void *arg = cl_tuple_make(ucBuf, &ulSize, &offset);
-	lClPrintFloat(&lPfwStream, arg, fpValue);
-	ucBuf[offset] = '\0';
-	return offset;
-}
-
-int32_t lClSnprintf(uint8_t *ucBuf, uint32_t ulSize, const char *ucFormat, ...) {
-	uint32_t offset = 0;
-	if((ucBuf == libNULL) || (!ulSize)) return 0;
+int32_t lClSnPrintInteger(void *pBuf, uint32_t ulSize, uint64_t ullValue, PrintIntegerFlags_t eFlags) {
+	if(!ulSize)
+		return 0;
 	ulSize--; /* reserve for string terminator '\0' */
-	void *arg = cl_tuple_make(ucBuf, &ulSize, &offset);
+	uint32_t offset = 0;
+	void *arg = cl_tuple_make(pBuf, &ulSize, &offset);
+	lClPrintInteger(&lPfwStream, arg, ullValue, eFlags);
+	if(pBuf)
+		((uint8_t *)pBuf)[offset] = '\0';
+	return offset;
+}
+
+int32_t lClSnPrintFloat(void *pBuf, uint32_t ulSize, float fpValue) {
+	if(!ulSize)
+		return 0;
+	ulSize--; /* reserve for string terminator '\0' */
+	uint32_t offset = 0;
+	void *arg = cl_tuple_make(pBuf, &ulSize, &offset);
+	lClPrintFloat(&lPfwStream, arg, fpValue);
+	if(pBuf)
+		((uint8_t *)pBuf)[offset] = '\0';
+	return offset;
+}
+
+int32_t lClSnprintf(void *pBuf, uint32_t ulSize, const char *ucFormat, ...) {
+	if(!ulSize)
+		return 0;
+	ulSize--; /* reserve for string terminator '\0' */
+	uint32_t offset = 0;
+	void *arg = cl_tuple_make(pBuf, &ulSize, &offset);
 	va_list args;
+	va_start(args, ucFormat);
 	offset = lClVPrintf(&lPfwStream, arg, ucFormat, args);
-	ucBuf[offset] = '\0';
 	va_end(args);
+	if(pBuf)
+		((uint8_t *)pBuf)[offset] = '\0';
 	return offset;
 }
 
 
 
 int32_t cl_vprintf(printf_writer_t, void *, const char*, va_list)           __attribute__ ((alias ("lClVPrintf")));
-int32_t cl_snprintf(uint8_t *, uint32_t, const char *, ...)                 __attribute__ ((alias ("lClSnprintf")));
+int32_t cl_snprintf(void *, uint32_t, const char *, ...)                 __attribute__ ((alias ("lClSnprintf")));
 int32_t cl_print_integer(printf_writer_t, void *, uint64_t, print_integer_flags_t) __attribute__ ((alias ("lClPrintInteger")));
-int32_t cl_snprint_integer(uint8_t *, uint32_t, uint64_t, print_integer_flags_t) __attribute__ ((alias ("lClSnPrintInteger")));
+int32_t cl_snprint_integer(void *, uint32_t, uint64_t, print_integer_flags_t) __attribute__ ((alias ("lClSnPrintInteger")));
 int32_t cl_print_float(printf_writer_t, void *, float)                      __attribute__ ((alias ("lClPrintFloat")));
-int32_t cl_snprint_float(uint8_t *, uint32_t, float)                        __attribute__ ((alias ("lClSnPrintFloat")));
+int32_t cl_snprint_float(void *, uint32_t, float)                        __attribute__ ((alias ("lClSnPrintFloat")));
