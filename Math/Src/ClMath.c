@@ -96,6 +96,19 @@ uint8_t bDecimal32Valid(decimal32_t dX) {
   return dX.denom || dX.num;
 }
 
+decimal32_t xDecimal32Negative(decimal32_t dX) {
+  dX.num = -dX.num;
+  return dX;
+}
+
+uint8_t xDecimal32IsPositive(decimal32_t dX) {
+  return dX.num > 0;
+}
+
+uint8_t xDecimal32IsNegative(decimal32_t dX) {
+  return dX.num < 0;
+}
+
 int32_t lDecimal32Cmp(decimal32_t dX, decimal32_t dY) {
   int64_t lhs = (int64_t)dX.num * (int64_t)dY.denom;
   int64_t rhs = (int64_t)dY.num * (int64_t)dX.denom;
@@ -137,6 +150,12 @@ decimal32_t xDecimal32Div(decimal32_t dX, decimal32_t dY) {
   return xDecimal32Mul(dX, inv);
 }
 
+decimal32_t xDecimal32Abs(decimal32_t dX) {
+  if(dX.num < 0)
+    dX.num = -dX.num;
+  return dX;
+}
+
 decimal32_t xDecimal32FromInt(int32_t ulX) {
   return (decimal32_t){.num = ulX, .denom = 1};
 }
@@ -158,6 +177,9 @@ uint32_t array_median(uint32_t [], uint32_t) __attribute__ ((alias ("ulArrayMedi
 
 decimal32_t decimal32_from_int(int32_t) __attribute__ ((alias ("xDecimal32FromInt")));
 uint8_t decimal32_valid(decimal32_t) __attribute__ ((alias ("bDecimal32Valid")));
+decimal32_t decimal32_negative(decimal32_t) __attribute__ ((alias ("xDecimal32Negative")));
+uint8_t decimal32_is_positive(decimal32_t) __attribute__ ((alias ("xDecimal32IsPositive")));
+uint8_t decimal32_is_negative(decimal32_t) __attribute__ ((alias ("xDecimal32IsNegative")));
 int32_t decimal32_cmp(decimal32_t, decimal32_t) __attribute__ ((alias ("lDecimal32Cmp")));
 decimal32_t decimal32_reduce(decimal32_t) __attribute__ ((alias ("xDecimal32Reduce")));
 int32_t decimal32_round(decimal32_t, uint32_t, int32_t) __attribute__ ((alias ("lDecimal32Round")));
@@ -165,6 +187,7 @@ decimal32_t decimal32_add(decimal32_t, decimal32_t) __attribute__ ((alias ("xDec
 decimal32_t decimal32_sub(decimal32_t, decimal32_t) __attribute__ ((alias ("xDecimal32Sub")));
 decimal32_t decimal32_mul(decimal32_t, decimal32_t) __attribute__ ((alias ("xDecimal32Mul")));
 decimal32_t decimal32_div(decimal32_t, decimal32_t) __attribute__ ((alias ("xDecimal32Div")));
+decimal32_t decimal32_abs(decimal32_t) __attribute__ ((alias ("xDecimal32Abs")));
 
 
 decimal32_t decimal32_vector_mul(const decimal32_t *, const decimal32_t *, uint32_t) __attribute__ ((alias ("xDecimal32VectorMul")));
