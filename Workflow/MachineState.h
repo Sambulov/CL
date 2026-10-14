@@ -43,9 +43,9 @@ extern "C" {
 #endif
 
 #ifdef DEBUG
-  #define CL_FSM_PRIVATE_SIZE   16
+  #define CL_FSM_PRIVATE_SIZE   CL_SIZE_OF(4, 0)
 #else
-  #define CL_FSM_PRIVATE_SIZE   12
+  #define CL_FSM_PRIVATE_SIZE   CL_SIZE_OF(3, 0)
 #endif
 
 typedef uint32_t FsmEvent_t;

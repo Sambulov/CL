@@ -27,24 +27,40 @@ typedef __PTRDIFF_TYPE__       ptrdiff_t;
 
 #define CL_FALSE 	           ((uint8_t)( 0 ))
 #define CL_TRUE	               !CL_FALSE
-#define CL_PRIVATE(size)       uint32_t __private[(size + sizeof(void *) - 1) >> 2]
+#define CL_PRIVATE(size)       uint32_t __private[((size) + 3) >> 2]
+
+#define CL_SIZE_PTRS(n)        ((n) * sizeof(void *))
+#define CL_SIZE_OF(ptrs, bytes) \
+    ((((ptrs) * sizeof(void *) + (bytes)) + sizeof(void *) - 1) / sizeof(void *) * sizeof(void *))
 
 #define libNULL                ((void *)0)
 
 #define libUNUSED(x)           ((void)(x))
 
+#ifndef offsetof
 #define offsetof(TYPE, MEMBER) __builtin_offsetof (TYPE, MEMBER)
+#endif
 
+#ifndef __weak
 #define __weak                 __attribute__((weak))
+#endif
+#ifndef __packed
 #define __packed               __attribute__((__packed__))
+#endif
 
 typedef void** cl_tuple_t;
 #define cl_tuple_make(...) ((void *[]){__VA_ARGS__})
 #define cl_tuple_get(tuple, index, type) ((type)(((void **)tuple)[index]))
 
+#ifndef va_start
 #define va_start(v,l)          __builtin_va_start(v,l)
+#endif
+#ifndef va_end
 #define va_end(v)              __builtin_va_end(v)
+#endif
+#ifndef va_arg
 #define va_arg(v,l)            __builtin_va_arg(v,l)
+#endif
 
 #define LIB_ASSERRT_STRUCTURE_CAST(private_type, public_type, prv_size_def, def_file) \
     _Static_assert(sizeof(private_type) == sizeof(public_type), "In "#def_file" data structure size of "#public_type" doesn't match, check "#prv_size_def)

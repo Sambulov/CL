@@ -45,7 +45,7 @@ int32_t lBase64Decode(uint8_t *pucOutData, uint32_t ulSize, const uint8_t *pucBa
 	uint8_t sextet;
 	for (uint32_t i = 0; i < ulLength; i++) {
 	    sextet = pucBase64[i];
-		if (((i & 3) >= 2) && pucOutData[i] == '=')
+		if (((i & 3) >= 2) && pucBase64[i] == '=')
 			break;
 		if ((sextet < 43) || (sextet > 122) || ((sextet = decodeTable[sextet - 43]) >= 64))
 			return -1;

@@ -1,8 +1,8 @@
 #ifndef CL_EVENT_H_
 #define CL_EVENT_H_
 
-#define CL_DELEGATE_PRIVATE_SIZE    16
-#define CL_EVENT_PRIVATE_SIZE        4
+#define CL_DELEGATE_PRIVATE_SIZE    LL_ITEM_SIZE
+#define CL_EVENT_PRIVATE_SIZE       CL_SIZE_OF(1, 0)
 
 typedef void (*event_handler_t)(void *event_trigger, void *sender, void *context);
 

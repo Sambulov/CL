@@ -18,7 +18,7 @@ static inline void *__LinkedListCalcObjPtr(size_t llOffset, void *llPtr) { retur
 #define __LinkedListObject__                            LinkedListItem_t __ll;
 #define LinkedListItem(pxObj)                           (&((pxObj)->__ll))
 
-#define LL_ITEM_SIZE    16
+#define LL_ITEM_SIZE    CL_SIZE_OF(3, 4)
 
 	typedef struct LL_ITEM_T {
 		CL_PRIVATE(LL_ITEM_SIZE);
@@ -36,7 +36,7 @@ static inline void *__LinkedListCalcObjPtr(size_t llOffset, void *llPtr) { retur
 	void vLinkedListDoWhile(LinkedList_t xList, LinkedListMatch_t fAction, void *pxArg);
 	void vLinkedListInsert(LinkedList_t *pxList, LinkedListItem_t *pxItem, ListItemComparer_t pfCmp);
 	static inline void vLinkedListInsertLast(LinkedList_t *pxList, LinkedListItem_t *pxItem) {
-		vLinkedListInsert(pxList, pxItem, libNULL);
+		vLinkedListInsert(pxList, pxItem, (ListItemComparer_t)libNULL);
 	}
 	void vLinkedListUnlink(LinkedListItem_t *pxItem);
 	uint32_t ulLinkedListCount(LinkedList_t xList, LinkedListMatch_t pfMatch, void *pxMatchArg);

@@ -232,7 +232,6 @@ uint16_t modbus_response(modbus_t *, modbus_frame_t *);
 uint16_t modbus_request(modbus_t *, modbus_frame_t *, modbus_cb_t, void *, uint16_t);
 uint8_t modbus_reset(modbus_t *);
 uint8_t modbus_busy(modbus_t *);
-uint8_t *modbus_frame_data(modbus_frame_t *, uint8_t *, uint8_t *, uint8_t *);
 void modbus_receive_data(modbus_t *, const uint8_t *, uint16_t, uint8_t);
 modbus_state_t modbus_get_state(modbus_t *);
 
