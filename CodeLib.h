@@ -87,6 +87,7 @@ typedef void** cl_tuple_t;
 #include "DataStructures/CircularBuffer.h"
 #include "DataStructures/Fifo.h"
 #include "DataStructures/Stream.h"
+#include "DataStructures/SegmentedRing.h"
 
 #include "DataStructures/Printf.h"
 
